@@ -31,6 +31,7 @@ export const api = {
 
   listCampaigns: () => request('/campaigns'),
   campaignStats: () => request('/campaigns/stats'),
+  getCampaign: (id: string) => request(`/campaigns/${id}`),
   createCampaign: (formData: unknown) =>
     request('/campaigns', { method: 'POST', body: JSON.stringify(formData) }),
 

@@ -1,4 +1,4 @@
-export type Screen = 'login' | 'dashboard' | 'wizard' | 'advanced' | 'admin' | 'help'
+export type Screen = 'login' | 'dashboard' | 'wizard' | 'advanced' | 'admin' | 'help' | 'intelligence'
 
 export type Channel = 'Echo' | 'DSP' | 'WhatsApp' | 'Voice AI' | 'Meta'
 

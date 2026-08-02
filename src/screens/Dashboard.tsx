@@ -34,11 +34,11 @@ interface Stats {
   channelThroughput: Record<string, number>
 }
 
-interface Props { onNavigate: (s: Screen) => void }
+interface Props { onNavigate: (s: Screen) => void; onOpenIntelligence: (campaignId: string) => void }
 
 const fmtRupee = (n: number) => `₹${Number(n).toLocaleString('en-IN')}`
 
-export default function Dashboard({ onNavigate }: Props) {
+export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -202,6 +202,14 @@ export default function Dashboard({ onNavigate }: Props) {
                 </td>
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      className="btn-secondary"
+                      title="Intelligence — insights & recommended actions for this campaign"
+                      style={{ padding: '3px 8px', fontSize: 12, color: '#7c3aed', borderColor: '#ddd6fe', background: '#f5f3ff' }}
+                      onClick={() => onOpenIntelligence(c.id)}
+                    >
+                      🧠
+                    </button>
                     <button className="btn-secondary" style={{ padding: '3px 9px', fontSize: 11 }}>View</button>
                     <button className="btn-secondary" style={{ padding: '3px 9px', fontSize: 11 }}>Edit</button>
                   </div>
