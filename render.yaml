@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ht-ads
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ht-ads-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+    healthCheckPath: /api/health
+
+databases:
+  - name: ht-ads-db
+    plan: starter
+    postgresMajorVersion: 16
