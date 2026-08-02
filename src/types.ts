@@ -27,6 +27,7 @@ export interface CampaignFormData {
   city: string
   zone: string
   pincode: string
+  defaultCohortAudience: string
   drrCap: string
 
   // Tracking
@@ -104,6 +105,7 @@ export interface CampaignFormData {
 
   // Step 3 — WhatsApp
   waChannelId: string
+  waCohort: string
   waTemplateId: string
   waValueMethod: string
   waRecipients: string
@@ -129,6 +131,33 @@ export interface CampaignFormData {
 
   // Step 3 — Meta
   metaChannelRole: string
+  metaCohort: string
+  metaGeoOverride: boolean
+  metaGeoInclude: string[]
+  metaGeoExclude: string[]
+  metaObjective: string
+  metaConversionLocation: string
+  metaOptimizationGoal: string
+  metaAdvantageAudience: boolean
+  metaDetailedTargeting: string[]
+  metaAgeMin: string
+  metaAgeMax: string
+  metaGender: string
+  metaPlacementsMode: string
+  metaManualPlacements: string[]
+  metaAttributionSetting: string
+  metaBidStrategy: string
+  metaBidAmount: string
+  metaIdentityPage: string
+  metaAdFormat: string
+  metaPrimaryText: string
+  metaHeadline: string
+  metaDescription: string
+  metaCta: string
+  metaDestinationUrl: string
+  metaInstantFormFields: string[]
+  metaPrivacyPolicyUrl: string
+  metaUtmParams: string
 
   // Step 4 — Preflight
   preflightChecked: string[]
@@ -154,6 +183,7 @@ export const defaultFormData: CampaignFormData = {
   city: 'Mumbai',
   zone: 'West',
   pincode: '400001',
+  defaultCohortAudience: 'HTAuto_HighIntent_Apr26',
   drrCap: '180',
   utmSource: 'ht-ads',
   utmCampaign: 'honda-city-q3',
@@ -188,7 +218,7 @@ export const defaultFormData: CampaignFormData = {
   echoProperty: 'HTAuto Web',
   echoPlatform: 'WEB',
   echoPosition: 'Top Banner',
-  echoCohort: 'HTAuto_HighIntent_Apr26',
+  echoCohort: '', // '' = inherit campaign default
   echoCreativeType: 'Choose from templates',
   echoScheduleEnabled: false,
   echoDaySchedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
@@ -206,7 +236,7 @@ export const defaultFormData: CampaignFormData = {
   echoUtmSource: 'echo-onsite',
   echoUtmMedium: 'banner',
   dspAudienceType: 'Retargeting',
-  dspCohort: 'HTAuto_HighIntent_Apr26',
+  dspCohort: '', // '' = inherit campaign default
   dspMediaType: 'Display',
   dspBiddingType: 'CPM',
   dspBidCap: '85',
@@ -219,6 +249,7 @@ export const defaultFormData: CampaignFormData = {
   dspGeoInclude: ['Maharashtra', 'Delhi NCR'],
   dspGeoExclude: [],
   waChannelId: 'wa_htauto_primary',
+  waCohort: '', // '' = inherit campaign default
   waTemplateId: 'lead_confirmation_v2',
   waValueMethod: 'manual',
   waRecipients: '+91 98200 11234',
@@ -228,7 +259,7 @@ export const defaultFormData: CampaignFormData = {
   waTimeStart: '10:00',
   waTimeEnd: '20:00',
   waDailyLimit: '5000',
-  voiceCohort: 'HTAuto_HighIntent_Apr26',
+  voiceCohort: '', // '' = inherit campaign default
   voiceScriptId: 'ivr_lead_verify_v1',
   voiceOutcomeMapping: 'Feeds into Lead Quality Matrix → Call Verified',
   voiceCallStart: '09:00',
@@ -240,5 +271,32 @@ export const defaultFormData: CampaignFormData = {
   voiceDtmf9: 'Callback requested — schedule follow-up',
   voiceLeadDispositions: ['Interested', 'Call Back', 'Not Interested', 'Wrong Number'],
   metaChannelRole: 'Primary Acquisition',
+  metaCohort: '', // '' = inherit campaign default
+  metaGeoOverride: false,
+  metaGeoInclude: [],
+  metaGeoExclude: [],
+  metaObjective: 'Leads',
+  metaConversionLocation: 'Instant Forms',
+  metaOptimizationGoal: 'Leads',
+  metaAdvantageAudience: true,
+  metaDetailedTargeting: ['In-market: Automotive'],
+  metaAgeMin: '25',
+  metaAgeMax: '54',
+  metaGender: 'All',
+  metaPlacementsMode: 'advantage',
+  metaManualPlacements: [],
+  metaAttributionSetting: 'Standard (7-day click, 1-day view)',
+  metaBidStrategy: 'Highest volume',
+  metaBidAmount: '',
+  metaIdentityPage: 'HT Auto — Official',
+  metaAdFormat: 'Single image or video',
+  metaPrimaryText: 'Looking for your next car? Explore the all-new Honda City — book a test drive today.',
+  metaHeadline: 'Honda City — Book a Test Drive',
+  metaDescription: 'Limited festive offers available this month.',
+  metaCta: 'Sign Up',
+  metaDestinationUrl: '',
+  metaInstantFormFields: ['Full name', 'Phone number', 'City'],
+  metaPrivacyPolicyUrl: 'https://www.hondacarindia.com/privacy-policy',
+  metaUtmParams: 'utm_source=meta&utm_medium=paid_social',
   preflightChecked: [],
 }

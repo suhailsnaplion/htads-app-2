@@ -202,6 +202,17 @@ export default function Step1Config({ data, onChange }: Props) {
         <FieldRow label="Pincode" badge={<Badge type="optional" />}>
           <input className="ht-input" value={data.pincode} onChange={e => onChange({ pincode: e.target.value })} placeholder="e.g. 400001" style={{ fontFamily: 'var(--font-mono)' }} />
         </FieldRow>
+        <FieldRow label="Default Cohort / Audience" badge={<Badge type="optional" />}
+          helper="Applied to every channel in Step 3 unless a channel explicitly overrides it.">
+          <select className="ht-select" value={data.defaultCohortAudience} onChange={e => onChange({ defaultCohortAudience: e.target.value })}>
+            <option value="">None — each channel targets its own default audience</option>
+            <option>HTAuto_HighIntent_Apr26</option>
+            <option>Realtime: Cart Abandoners</option>
+            <option>Realtime: Form Abandoners</option>
+            <option>Education_Web_Leads_Q2</option>
+            <option>Lookalike: Recent Purchasers</option>
+          </select>
+        </FieldRow>
         {showDRR && (
           <FieldRow label="Daily Run Rate (DRR) Cap" badge={<Badge type="conditional" condition="BU = HTAuto + Obj = CPL/CPQL" />}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>

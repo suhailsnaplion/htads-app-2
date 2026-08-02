@@ -66,6 +66,21 @@ function ChipMultiSelect({ options, selected, onChange }: { options: string[]; s
   )
 }
 
+function CohortField({ data, value, onChange, options }: { data: CampaignFormData; value: string; onChange: (v: string) => void; options: string[] }) {
+  const inherited = data.defaultCohortAudience
+  return (
+    <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}
+      helper={value === ''
+        ? (inherited ? `Inheriting campaign default (set in Step 1): ${inherited}` : 'No campaign default is set in Step 1 — pick one below to target this channel specifically.')
+        : 'Overriding the campaign default for this channel only.'}>
+      <select className="ht-select" value={value} onChange={e => onChange(e.target.value)}>
+        <option value="">{inherited ? `Use campaign default (${inherited})` : 'None — no audience restriction'}</option>
+        {options.map(o => <option key={o}>{o}</option>)}
+      </select>
+    </FieldRow>
+  )
+}
+
 function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 6 }}>
@@ -153,12 +168,8 @@ function EchoTab({ data, onChange }: Props) {
             {['Top Banner', 'MOA', 'Bottom Popup', 'Nav Bar L2', 'Interstitial'].map(p => <option key={p}>{p}</option>)}
           </select>
         </FieldRow>
-        <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}>
-          <select className="ht-select" value={data.echoCohort} onChange={e => onChange({ echoCohort: e.target.value })}>
-            <option value="">None — show to all eligible users</option>
-            {['HTAuto_HighIntent_Apr26', 'Realtime: Cart Abandoners', 'Education_Web_Leads_Q2'].map(c => <option key={c}>{c}</option>)}
-          </select>
-        </FieldRow>
+        <CohortField data={data} value={data.echoCohort} onChange={v => onChange({ echoCohort: v })}
+          options={['HTAuto_HighIntent_Apr26', 'Realtime: Cart Abandoners', 'Education_Web_Leads_Q2']} />
         <FieldRow label="Creative / Content Type" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.echoCreativeType} onChange={e => onChange({ echoCreativeType: e.target.value })}>
             {['Choose from templates', 'Upload image', 'Custom HTML', 'SDK intervention'].map(t => <option key={t}>{t}</option>)}
@@ -280,9 +291,10 @@ function EchoTab({ data, onChange }: Props) {
   )
 }
 
+const STATES_ALL = ['Maharashtra', 'Delhi NCR', 'Karnataka', 'Tamil Nadu', 'Gujarat', 'Rajasthan', 'Uttar Pradesh']
+
 // ─── DSP ────────────────────────────────────────────────────────────────────
 function DSPTab({ data, onChange }: Props) {
-  const STATES_ALL = ['Maharashtra', 'Delhi NCR', 'Karnataka', 'Tamil Nadu', 'Gujarat', 'Rajasthan', 'Uttar Pradesh']
 
   return (
     <div className="section-card">
@@ -300,12 +312,8 @@ function DSPTab({ data, onChange }: Props) {
             {['Retargeting', 'Prospecting', 'Customizable', 'Broad Targeting'].map(t => <option key={t}>{t}</option>)}
           </select>
         </FieldRow>
-        <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}>
-          <select className="ht-select" value={data.dspCohort} onChange={e => onChange({ dspCohort: e.target.value })}>
-            <option value="">None — use audience type targeting</option>
-            {['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers', 'Realtime: Cart Abandoners'].map(c => <option key={c}>{c}</option>)}
-          </select>
-        </FieldRow>
+        <CohortField data={data} value={data.dspCohort} onChange={v => onChange({ dspCohort: v })}
+          options={['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers', 'Realtime: Cart Abandoners']} />
         <FieldRow label="Media Type" badge={<Badge type="mandatory" />}>
           <div style={{ display: 'flex', gap: 10 }}>
             {['Display', 'Video'].map(t => (
@@ -471,13 +479,8 @@ function WhatsAppTab({ data, onChange }: Props) {
           </select>
         </FieldRow>
 
-        <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}>
-          <select className="ht-select">
-            <option>HTAuto_HighIntent_Apr26</option>
-            <option>Realtime: Form Abandoners</option>
-            <option>None (use manual/upload below)</option>
-          </select>
-        </FieldRow>
+        <CohortField data={data} value={data.waCohort} onChange={v => onChange({ waCohort: v })}
+          options={['HTAuto_HighIntent_Apr26', 'Realtime: Form Abandoners']} />
         <FieldRow label="Template ID" badge={<Badge type="mandatory" />}
           helper="Only pre-approved WhatsApp Business templates may be used.">
           <select className="ht-select" value={data.waTemplateId} onChange={e => onChange({ waTemplateId: e.target.value })}>
@@ -645,13 +648,8 @@ function VoiceAITab({ data, onChange }: Props) {
       </div>
       <div className="section-card-body">
 
-        <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}>
-          <select className="ht-select" value={data.voiceCohort} onChange={e => onChange({ voiceCohort: e.target.value })}>
-            <option>HTAuto_HighIntent_Apr26</option>
-            <option>Realtime: Form Abandoners</option>
-            <option>None (use upload below)</option>
-          </select>
-        </FieldRow>
+        <CohortField data={data} value={data.voiceCohort} onChange={v => onChange({ voiceCohort: v })}
+          options={['HTAuto_HighIntent_Apr26', 'Realtime: Form Abandoners']} />
         <FieldRow label="Voice Bot / IVR Script ID" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.voiceScriptId} onChange={e => onChange({ voiceScriptId: e.target.value })}>
             <option value="ivr_lead_verify_v1">ivr_lead_verify_v1 — Lead verification flow</option>
@@ -744,42 +742,236 @@ function VoiceAITab({ data, onChange }: Props) {
 }
 
 // ─── Meta ────────────────────────────────────────────────────────────────────
+const META_OBJECTIVES: Record<string, { conversionLocations: string[]; optimizationGoals: string[] }> = {
+  'Awareness': { conversionLocations: ['On-platform (no destination required)'], optimizationGoals: ['Reach', 'Impressions', 'Ad Recall Lift', 'ThruPlay (video)'] },
+  'Traffic': { conversionLocations: ['Website', 'App', 'Messenger', 'WhatsApp', 'Calls'], optimizationGoals: ['Link Clicks', 'Landing Page Views', 'Impressions', 'Daily Unique Reach'] },
+  'Engagement': { conversionLocations: ['On Facebook / Instagram', 'Messenger', 'Calls'], optimizationGoals: ['Post Engagement', 'ThruPlay (video)', 'Messaging Conversations Started', 'Calls'] },
+  'Leads': { conversionLocations: ['Instant Forms', 'Website', 'Website & Instant Forms (Hybrid)', 'Calls', 'App', 'Messenger'], optimizationGoals: ['Leads', 'Conversion Leads (qualified)'] },
+  'App Promotion': { conversionLocations: ['App'], optimizationGoals: ['App Installs', 'App Events', 'Value Optimization'] },
+  'Sales': { conversionLocations: ['Website', 'App', 'Website & App', 'Shop', 'Messenger'], optimizationGoals: ['Conversions', 'Conversion Value / ROAS', 'Landing Page Views'] },
+}
+
+const META_CTA_OPTIONS = ['Learn More', 'Shop Now', 'Sign Up', 'Download', 'Book Now', 'Call Now', 'Send Message', 'Get Offer', 'Subscribe']
+const META_PLACEMENT_OPTIONS = ['Facebook Feed', 'Instagram Feed', 'Reels', 'Stories', 'Marketplace', 'Audience Network', 'Messenger']
+const META_DETAILED_TARGETING_OPTIONS = ['In-market: Automotive', 'In-market: Real Estate', 'In-market: Education', 'Frequent Travelers', 'Small Business Owners', 'Recently Moved', 'Online Shoppers']
+
 function MetaTab({ data, onChange }: Props) {
+  const objectiveInfo = META_OBJECTIVES[data.metaObjective] || META_OBJECTIVES['Leads']
+  const usesInstantForm = data.metaConversionLocation.includes('Instant Forms')
+  const usesWebsite = data.metaConversionLocation === 'Website' || data.metaConversionLocation.includes('Hybrid') || data.metaConversionLocation === 'Website & App'
+  const usesCalls = data.metaConversionLocation === 'Calls'
+  const showsDestination = usesInstantForm || usesWebsite
+
+  const onObjectiveChange = (obj: string) => {
+    const info = META_OBJECTIVES[obj]
+    onChange({
+      metaObjective: obj,
+      metaConversionLocation: info.conversionLocations[0],
+      metaOptimizationGoal: info.optimizationGoals[0],
+    })
+  }
+
   return (
     <div className="section-card">
       <div className="section-card-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
-          <span className="section-card-title">Meta — Facebook &amp; Instagram</span>
+          <span className="section-card-title">Meta — Facebook &amp; Instagram Configuration</span>
         </div>
-        <span style={{ fontSize: 11, color: '#6d28d9', fontWeight: 600, background: '#f5f3ff', padding: '2px 8px', borderRadius: 4, border: '1px solid #ddd6fe' }}>Phase 1 — Selection only</span>
+        <span style={{ fontSize: 11, color: '#6d28d9', fontWeight: 600, background: '#f5f3ff', padding: '2px 8px', borderRadius: 4, border: '1px solid #ddd6fe' }}>Meta Marketing API</span>
       </div>
       <div className="section-card-body">
-        <div style={{
-          background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 8,
-          padding: '16px 18px', marginBottom: 4, display: 'flex', gap: 12,
-        }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>ℹ</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#5b21b6', marginBottom: 4 }}>Meta is selection-only in Phase 1</div>
-            <p style={{ fontSize: 12.5, color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-              Configure this campaign directly in <strong>Meta Ads Manager</strong>. Full in-platform configuration — Ad Set, Creative, Targeting, Budget, and Attribution — via Meta MCP arrives in Phase 2. Budget assigned to Meta in Step 2 is informational only; delivery is managed by Meta.
-            </p>
-          </div>
-        </div>
+
+        <SubSection title="Objective &amp; Conversion">
+          <FieldRow label="Meta Objective" badge={<Badge type="mandatory" />}
+            helper="Locked once the campaign launches — changing it later requires rebuilding this channel's setup.">
+            <select className="ht-select" value={data.metaObjective} onChange={e => onObjectiveChange(e.target.value)}>
+              {Object.keys(META_OBJECTIVES).map(o => <option key={o}>{o}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow label="Conversion Location" badge={<Badge type="mandatory" />}>
+            <select className="ht-select" value={data.metaConversionLocation} onChange={e => onChange({ metaConversionLocation: e.target.value })}>
+              {objectiveInfo.conversionLocations.map(c => <option key={c}>{c}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow label="Optimization Goal" badge={<Badge type="mandatory" />}>
+            <select className="ht-select" value={data.metaOptimizationGoal} onChange={e => onChange({ metaOptimizationGoal: e.target.value })}>
+              {objectiveInfo.optimizationGoals.map(g => <option key={g}>{g}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow label="Attribution Setting" badge={<Badge type="mandatory" condition="Only applies when optimizing for an off-platform conversion event" />}>
+            <select className="ht-select" value={data.metaAttributionSetting} onChange={e => onChange({ metaAttributionSetting: e.target.value })}>
+              <option>Standard (7-day click, 1-day view)</option>
+              <option>Incremental (predicts causally-driven conversions)</option>
+            </select>
+          </FieldRow>
+        </SubSection>
+
+        <SubSection title="Audience">
+          <CohortField data={data} value={data.metaCohort} onChange={v => onChange({ metaCohort: v })}
+            options={['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers']} />
+          <FieldRow label="Locations" badge={<Badge type="mandatory" />}
+            helper={data.metaGeoOverride ? 'Overriding the campaign geography for this channel only.' : `Inheriting campaign geography (set in Step 1): ${data.state}, ${data.city}, ${data.zone} zone.`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: data.metaGeoOverride ? 8 : 0 }}>
+              <Toggle checked={data.metaGeoOverride} onChange={v => onChange({ metaGeoOverride: v })} />
+              <span style={{ fontSize: 12.5, color: '#334155' }}>Override campaign geography for Meta</span>
+            </div>
+            {data.metaGeoOverride && (
+              <SubSection title="Meta-specific geo targeting">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#15803d', fontWeight: 600, marginBottom: 5 }}>Include</div>
+                    <ChipMultiSelect options={STATES_ALL} selected={data.metaGeoInclude} onChange={v => onChange({ metaGeoInclude: v })} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600, marginBottom: 5 }}>Exclude</div>
+                    <ChipMultiSelect options={STATES_ALL} selected={data.metaGeoExclude} onChange={v => onChange({ metaGeoExclude: v })} />
+                  </div>
+                </div>
+              </SubSection>
+            )}
+          </FieldRow>
+          <FieldRow label="Detailed Targeting" badge={<Badge type="optional" />}
+            helper="Layers interest/behavior signals on top of the cohort or open targeting.">
+            <ChipMultiSelect options={META_DETAILED_TARGETING_OPTIONS} selected={data.metaDetailedTargeting} onChange={v => onChange({ metaDetailedTargeting: v })} />
+          </FieldRow>
+          <FieldRow label="Age Range" badge={<Badge type="mandatory" />}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <input className="ht-input" value={data.metaAgeMin} onChange={e => onChange({ metaAgeMin: e.target.value })} placeholder="Min (13+)" style={{ fontFamily: 'var(--font-mono)' }} />
+              <input className="ht-input" value={data.metaAgeMax} onChange={e => onChange({ metaAgeMax: e.target.value })} placeholder="Max (65+)" style={{ fontFamily: 'var(--font-mono)' }} />
+            </div>
+          </FieldRow>
+          <FieldRow label="Gender" badge={<Badge type="mandatory" />}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['All', 'Men', 'Women'].map(g => (
+                <label key={g} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                  <input type="radio" name="metaGender" value={g} checked={data.metaGender === g} onChange={() => onChange({ metaGender: g })} style={{ accentColor: '#8b5cf6' }} />
+                  <span style={{ fontWeight: 500, color: '#334155' }}>{g}</span>
+                </label>
+              ))}
+            </div>
+          </FieldRow>
+          <FieldRow label="Advantage+ Audience" badge={<Badge type="optional" />}
+            helper="Lets Meta's AI expand delivery beyond the defined targeting when it finds likely converters.">
+            <Toggle checked={data.metaAdvantageAudience} onChange={v => onChange({ metaAdvantageAudience: v })} />
+          </FieldRow>
+        </SubSection>
+
+        <SubSection title="Placements &amp; Bidding">
+          <FieldRow label="Placements" badge={<Badge type="mandatory" />}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: data.metaPlacementsMode === 'manual' ? 8 : 0 }}>
+              {[{ v: 'advantage', l: 'Advantage+ Placements (automatic)' }, { v: 'manual', l: 'Manual' }].map(opt => (
+                <label key={opt.v} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                  <input type="radio" name="metaPlacements" value={opt.v} checked={data.metaPlacementsMode === opt.v} onChange={() => onChange({ metaPlacementsMode: opt.v })} style={{ accentColor: '#8b5cf6' }} />
+                  <span style={{ fontWeight: 500, color: '#334155' }}>{opt.l}</span>
+                </label>
+              ))}
+            </div>
+            {data.metaPlacementsMode === 'manual' && (
+              <ChipMultiSelect options={META_PLACEMENT_OPTIONS} selected={data.metaManualPlacements} onChange={v => onChange({ metaManualPlacements: v })} />
+            )}
+          </FieldRow>
+          <FieldRow label="Bid Strategy" badge={<Badge type="mandatory" />}>
+            <select className="ht-select" value={data.metaBidStrategy} onChange={e => onChange({ metaBidStrategy: e.target.value })}>
+              <option>Highest volume</option>
+              <option>Cost per result goal</option>
+              <option>Bid cap</option>
+              {data.metaObjective === 'Sales' && <option>ROAS goal</option>}
+            </select>
+          </FieldRow>
+          {(data.metaBidStrategy === 'Cost per result goal' || data.metaBidStrategy === 'Bid cap' || data.metaBidStrategy === 'ROAS goal') && (
+            <FieldRow label={data.metaBidStrategy === 'ROAS goal' ? 'Target ROAS' : 'Bid Amount (₹)'} badge={<Badge type="mandatory" />}>
+              <input className="ht-input" value={data.metaBidAmount} onChange={e => onChange({ metaBidAmount: e.target.value })} placeholder={data.metaBidStrategy === 'ROAS goal' ? 'e.g. 4.0' : 'e.g. 145'} style={{ fontFamily: 'var(--font-mono)' }} />
+            </FieldRow>
+          )}
+        </SubSection>
+
+        <SubSection title="Creative &amp; Copy">
+          <FieldRow label="Identity (Page)" badge={<Badge type="mandatory" />}>
+            <select className="ht-select" value={data.metaIdentityPage} onChange={e => onChange({ metaIdentityPage: e.target.value })}>
+              <option>HT Auto — Official</option>
+              <option>HT Tech — Official</option>
+              <option>HT Education — Official</option>
+            </select>
+          </FieldRow>
+          <FieldRow label="Ad Format" badge={<Badge type="mandatory" />}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['Single image or video', 'Carousel', 'Collection'].map(f => (
+                <label key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                  <input type="radio" name="metaFormat" value={f} checked={data.metaAdFormat === f} onChange={() => onChange({ metaAdFormat: f })} style={{ accentColor: '#8b5cf6' }} />
+                  <span style={{ fontWeight: 500, color: '#334155' }}>{f}</span>
+                </label>
+              ))}
+            </div>
+          </FieldRow>
+          <FieldRow label="Creative Upload" badge={<Badge type="mandatory" />}>
+            <div style={{
+              border: '2px dashed #ddd6fe', borderRadius: 6, padding: '18px 16px',
+              textAlign: 'center', cursor: 'pointer', background: '#f5f3ff',
+            }}>
+              <div style={{ fontSize: 22, marginBottom: 4, color: '#8b5cf6' }}>⬆</div>
+              <div style={{ fontSize: 12.5, fontWeight: 500, color: '#6d28d9' }}>Drop creative files here or click to upload</div>
+              <div style={{ fontSize: 11, color: '#c4b5fd', marginTop: 3 }}>JPG, PNG, MP4 · 1080×1080 (Feed) · 1080×1920 (Reels/Stories)</div>
+            </div>
+          </FieldRow>
+          <FieldRow label="Primary Text" badge={<Badge type="mandatory" />}>
+            <textarea className="ht-input" rows={2} value={data.metaPrimaryText} onChange={e => onChange({ metaPrimaryText: e.target.value })} style={{ resize: 'vertical', fontSize: 13 }} />
+          </FieldRow>
+          <FieldRow label="Headline" badge={<Badge type="mandatory" />}>
+            <input className="ht-input" value={data.metaHeadline} onChange={e => onChange({ metaHeadline: e.target.value })} />
+          </FieldRow>
+          <FieldRow label="Description" badge={<Badge type="optional" />}>
+            <input className="ht-input" value={data.metaDescription} onChange={e => onChange({ metaDescription: e.target.value })} />
+          </FieldRow>
+          <FieldRow label="Call to Action" badge={<Badge type="mandatory" />}>
+            <select className="ht-select" value={data.metaCta} onChange={e => onChange({ metaCta: e.target.value })}>
+              {META_CTA_OPTIONS.map(c => <option key={c}>{c}</option>)}
+            </select>
+          </FieldRow>
+        </SubSection>
+
+        <SubSection title="Destination">
+          {usesInstantForm && (
+            <>
+              <FieldRow label="Instant Form Questions" badge={<Badge type="mandatory" />}
+                helper="Fields a user fills in without leaving Facebook/Instagram.">
+                <ChipMultiSelect
+                  options={['Full name', 'Phone number', 'Email', 'City', 'Pincode', 'Preferred dealer', 'Best time to contact']}
+                  selected={data.metaInstantFormFields}
+                  onChange={v => onChange({ metaInstantFormFields: v })}
+                />
+              </FieldRow>
+              <FieldRow label="Instant Form Privacy Policy URL" badge={<Badge type="mandatory" />}>
+                <input className="ht-input" value={data.metaPrivacyPolicyUrl} onChange={e => onChange({ metaPrivacyPolicyUrl: e.target.value })} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+              </FieldRow>
+            </>
+          )}
+          {usesWebsite && (
+            <FieldRow label="Destination URL" badge={<Badge type="mandatory" />}>
+              <input className="ht-input" value={data.metaDestinationUrl} onChange={e => onChange({ metaDestinationUrl: e.target.value })} placeholder="https://www.hondacarindia.com/city" style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+            </FieldRow>
+          )}
+          {usesCalls && (
+            <FieldRow label="Phone Number" badge={<Badge type="mandatory" />}>
+              <input className="ht-input" placeholder="+91 98200 11234" style={{ fontFamily: 'var(--font-mono)' }} />
+            </FieldRow>
+          )}
+          {!showsDestination && !usesCalls && (
+            <div style={{ fontSize: 12.5, color: '#9ca3af', padding: '8px 0' }}>
+              No external destination required for this conversion location — the outcome happens on-platform.
+            </div>
+          )}
+          <FieldRow label="URL Parameters (UTM)" badge={<Badge type="optional" />}>
+            <input className="ht-input" value={data.metaUtmParams} onChange={e => onChange({ metaUtmParams: e.target.value })} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+          </FieldRow>
+        </SubSection>
+
         <FieldRow label="Channel Role" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.metaChannelRole} onChange={e => onChange({ metaChannelRole: e.target.value })}>
             <option>Primary Acquisition</option>
             <option>Verification / Nurture</option>
           </select>
         </FieldRow>
-        <div style={{
-          marginTop: 8, padding: '12px 14px',
-          background: '#fafafa', border: '1px dashed #ddd6fe', borderRadius: 6,
-          fontSize: 12, color: '#9ca3af', lineHeight: 1.6,
-        }}>
-          Meta Ad Set ID, Creative ID, Audience ID, and Budget confirmation will be imported from Meta Ads Manager in Phase 2. When imported, a green confirmation badge will appear here.
-        </div>
       </div>
     </div>
   )
@@ -798,7 +990,7 @@ export default function Step3Configure({ data, onChange }: Props) {
   }
 
   const channelCounts: Record<Channel, number> = {
-    Echo: 10, DSP: 11, WhatsApp: 7, 'Voice AI': 8, Meta: 1,
+    Echo: 10, DSP: 11, WhatsApp: 7, 'Voice AI': 8, Meta: 20,
   }
 
   return (
