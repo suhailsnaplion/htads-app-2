@@ -56,18 +56,3 @@ router.get('/cohorts', requireAuth, (req, res) => res.json({ cohorts: COHORTS })
 router.get('/placements', requireAuth, (req, res) => res.json({ placements: PLACEMENTS }))
 
 export default router
-EOFcat > server/src/routes/whatsapp.js << 'EOF'
-import { Router } from 'express'
-import { requireAuth } from '../middleware/auth.js'
-
-const router = Router()
-
-router.post('/test-send', requireAuth, async (req, res) => {
-  const { channelId, phone, templateId } = req.body || {}
-  if (!channelId || !phone || !templateId) return res.status(400).json({ error: 'channelId, phone, and templateId are required' })
-  const digits = String(phone).replace(/\D/g, '')
-  if (digits.length < 10) return res.status(400).json({ error: 'Enter a valid 10-digit phone number' })
-  res.json({ simulated: true, status: 'simulated', message: 'Simulated — no WhatsApp Business API credentials are configured for this environment yet.' })
-})
-
-export default router
