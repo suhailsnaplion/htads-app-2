@@ -64,8 +64,6 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => { cancelled = true }
   }, [])
 
-  const maxThroughput = stats ? Math.max(1, ...Object.values(stats.channelThroughput)) : 1
-
   return (
     <div style={{ padding: '24px 28px', maxWidth: 1300 }}>
       {error && (
@@ -94,20 +92,22 @@ export default function Dashboard({ onNavigate }: Props) {
           padding: '14px 18px', marginBottom: 20,
           display: 'flex', alignItems: 'center', gap: 28,
         }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Channel Throughput</span>
-          {Object.entries(stats.channelThroughput).map(([name, leads]) => {
-            const pct = Math.round((leads / maxThroughput) * 100)
-            return (
-              <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: CH_COLORS[name], flexShrink: 0 }} />
-                <span style={{ fontSize: 12.5, fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>{name}</span>
-                <div style={{ flex: 1, height: 4, background: '#f1f5f9', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: CH_COLORS[name], borderRadius: 2 }} />
-                </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: '#64748b', whiteSpace: 'nowrap' }}>{leads} leads</span>
+          <span
+            style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}
+            title="% of users reached who converted — leads, transactions, or views, depending on what each campaign on that channel optimizes for"
+          >
+            Channel Throughput
+          </span>
+          {Object.entries(stats.channelThroughput).map(([name, pct]) => (
+            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: CH_COLORS[name], flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>{name}</span>
+              <div style={{ flex: 1, height: 4, background: '#f1f5f9', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: CH_COLORS[name], borderRadius: 2 }} />
               </div>
-            )
-          })}
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: '#64748b', whiteSpace: 'nowrap' }}>{pct}%</span>
+            </div>
+          ))}
         </div>
       )}
 
