@@ -24,10 +24,11 @@ interface Insight {
 }
 
 const SEVERITY_STYLE: Record<Severity, { border: string; bg: string; label: string; labelColor: string }> = {
-  high: { border: '#fecaca', bg: '#fef2f2', label: 'High impact', labelColor: '#dc2626' },
-  medium: { border: '#fde68a', bg: '#fffbeb', label: 'Medium impact', labelColor: '#b45309' },
-  low: { border: '#e2e8f0', bg: '#f8fafc', label: 'Low impact', labelColor: '#64748b' },
+  high: { border: '#dc2626', bg: '#dc2626', label: 'High impact', labelColor: '#ffffff' },
+  medium: { border: '#d97706', bg: '#d97706', label: 'Medium impact', labelColor: '#ffffff' },
+  low: { border: '#475569', bg: '#475569', label: 'Low impact', labelColor: '#ffffff' },
 }
+const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 }
 
 // Curated, detailed insight set for the flagship demo campaign (Honda City — Q3 Lead Gen).
 // Channels in use: Echo, DSP, WhatsApp. Not in use: Voice AI, Meta.
@@ -162,8 +163,8 @@ export default function IntelligencePanel({ campaignId, onBack }: Props) {
   const usedChannels: string[] = campaign.channels || []
   const notUsedChannels = ALL_CHANNELS.filter(c => !usedChannels.includes(c))
 
-  const usedInsights = visible.filter(i => i.used)
-  const opportunityInsights = visible.filter(i => !i.used)
+  const usedInsights = visible.filter(i => i.used).sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
+  const opportunityInsights = visible.filter(i => !i.used).sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
 
   const applyAction = (id: string) => setApplied(a => [...a, id])
   const dismissAction = (id: string) => setDismissed(d => [...d, id])
@@ -254,15 +255,15 @@ function InsightCard({ insight, isApplied, onApply, onDismiss }: { insight: Insi
   return (
     <div style={{
       background: 'white', border: `1px solid ${insight.used ? sev.border : '#ddd6fe'}`, borderRadius: 8,
-      borderLeft: `4px solid ${insight.used ? sev.labelColor : '#8b5cf6'}`,
+      borderLeft: `5px solid ${insight.used ? sev.border : '#8b5cf6'}`,
       padding: '16px 18px', opacity: isApplied ? 0.55 : 1, transition: 'opacity 0.15s',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
             <span style={{
-              fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
-              background: sev.bg, color: sev.labelColor, textTransform: 'uppercase', letterSpacing: '0.03em',
+              fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 4,
+              background: sev.bg, color: sev.labelColor, textTransform: 'uppercase', letterSpacing: '0.04em',
             }}>{sev.label}</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>{insight.category}</span>
             <div style={{ display: 'flex', gap: 4 }}>
