@@ -153,11 +153,6 @@ function EchoTab({ data, onChange }: Props) {
       <div className="section-card-body">
 
         {/* Placement */}
-        <FieldRow label="Objective" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoObjective} onChange={e => onChange({ echoObjective: e.target.value })}>
-            {['User engagement', 'New feature promotion', 'Paid Advertisement', 'App download', 'Voucher Advertisement', 'Personalization', 'Personal Finance', 'Test', 'Fallback/Default'].map(o => <option key={o}>{o}</option>)}
-          </select>
-        </FieldRow>
         <FieldRow label="Property" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.echoProperty} onChange={e => onChange({ echoProperty: e.target.value })}>
             {['HTAuto Web', 'HT Web', 'LM Web', 'LH Web', 'HT App'].map(p => <option key={p}>{p}</option>)}

@@ -126,6 +126,12 @@ export default function Step1Config({ data, onChange }: Props) {
             {OBJECTIVES.map(o => <option key={o}>{o}</option>)}
           </select>
         </FieldRow>
+        <FieldRow label="Campaign Objective" badge={<Badge type="mandatory" />}
+          helper="Common across all channels — set once here, not per channel.">
+          <select className="ht-select" value={data.campaignObjective} onChange={e => onChange({ campaignObjective: e.target.value })}>
+            {['User engagement', 'New feature promotion', 'Paid Advertisement', 'App download', 'Voucher Advertisement', 'Personalization', 'Personal Finance', 'Test', 'Fallback/Default'].map(o => <option key={o}>{o}</option>)}
+          </select>
+        </FieldRow>
         {showActionType && (
           <FieldRow label="Action Type" badge={<Badge type="conditional" condition="Objective = CPA" />}>
             <select className="ht-select" value={data.actionType} onChange={e => onChange({ actionType: e.target.value })}>

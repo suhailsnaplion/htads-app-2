@@ -11,6 +11,7 @@ export interface CampaignFormData {
 
   // Objective
   objective: string
+  campaignObjective: string
   actionType: string
   goalLayer: string
   attributionMethod: string
@@ -67,7 +68,6 @@ export interface CampaignFormData {
   channelBudgets: Record<Channel, string>
 
   // Step 3 — Echo
-  echoObjective: string
   echoProperty: string
   echoPlatform: string
   echoPosition: string
@@ -178,6 +178,7 @@ export const defaultFormData: CampaignFormData = {
   dealType: 'Direct',
   agencyCode: '',
   objective: 'CPL – Cost per Lead',
+  campaignObjective: 'Paid Advertisement',
   actionType: '',
   goalLayer: 'Acquisition',
   attributionMethod: 'Last Click',
@@ -224,7 +225,6 @@ export const defaultFormData: CampaignFormData = {
   selectedChannels: ['Echo', 'DSP', 'WhatsApp'],
   channelRoles: { Echo: 'Primary Acquisition', DSP: 'Primary Acquisition', WhatsApp: 'Verification / Nurture', 'Voice AI': '', Meta: '' },
   channelBudgets: { Echo: '350000', DSP: '280000', WhatsApp: '120000', 'Voice AI': '', Meta: '' },
-  echoObjective: 'Paid Advertisement',
   echoProperty: 'HTAuto Web',
   echoPlatform: 'WEB',
   echoPosition: 'Top Banner',
