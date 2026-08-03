@@ -67,6 +67,7 @@ export interface CampaignFormData {
   channelBudgets: Record<Channel, string>
 
   // Step 3 — Echo
+  echoObjective: string
   echoProperty: string
   echoPlatform: string
   echoPosition: string
@@ -87,6 +88,14 @@ export interface CampaignFormData {
   echoFormFields: string[]
   echoUtmSource: string
   echoUtmMedium: string
+  echoInventoryType: string
+  echoPages: string
+  echoSpecificPages: string[]
+  echoUserState: string
+  echoUserSource: string
+  echoAdditionalSettingsEnabled: boolean
+  echoPriority: string
+  echoCountry: string
 
   // Step 3 — DSP
   dspAudienceType: string
@@ -215,6 +224,7 @@ export const defaultFormData: CampaignFormData = {
   selectedChannels: ['Echo', 'DSP', 'WhatsApp'],
   channelRoles: { Echo: 'Primary Acquisition', DSP: 'Primary Acquisition', WhatsApp: 'Verification / Nurture', 'Voice AI': '', Meta: '' },
   channelBudgets: { Echo: '350000', DSP: '280000', WhatsApp: '120000', 'Voice AI': '', Meta: '' },
+  echoObjective: 'Paid Advertisement',
   echoProperty: 'HTAuto Web',
   echoPlatform: 'WEB',
   echoPosition: 'Top Banner',
@@ -235,6 +245,14 @@ export const defaultFormData: CampaignFormData = {
   echoFormFields: ['Name', 'Phone', 'City'],
   echoUtmSource: 'echo-onsite',
   echoUtmMedium: 'banner',
+  echoInventoryType: 'Standalone',
+  echoPages: 'All pages',
+  echoSpecificPages: [],
+  echoUserState: 'Non-Loggedin',
+  echoUserSource: 'All Sources',
+  echoAdditionalSettingsEnabled: false,
+  echoPriority: '3',
+  echoCountry: 'All',
   dspAudienceType: 'Retargeting',
   dspCohort: '', // '' = inherit campaign default
   dspMediaType: 'Display',

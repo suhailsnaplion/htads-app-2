@@ -153,6 +153,11 @@ function EchoTab({ data, onChange }: Props) {
       <div className="section-card-body">
 
         {/* Placement */}
+        <FieldRow label="Objective" badge={<Badge type="mandatory" />}>
+          <select className="ht-select" value={data.echoObjective} onChange={e => onChange({ echoObjective: e.target.value })}>
+            {['User engagement', 'New feature promotion', 'Paid Advertisement', 'App download', 'Voucher Advertisement', 'Personalization', 'Personal Finance', 'Test', 'Fallback/Default'].map(o => <option key={o}>{o}</option>)}
+          </select>
+        </FieldRow>
         <FieldRow label="Property" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.echoProperty} onChange={e => onChange({ echoProperty: e.target.value })}>
             {['HTAuto Web', 'HT Web', 'LM Web', 'LH Web', 'HT App'].map(p => <option key={p}>{p}</option>)}
@@ -166,6 +171,41 @@ function EchoTab({ data, onChange }: Props) {
         <FieldRow label="Position / Placement" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.echoPosition} onChange={e => onChange({ echoPosition: e.target.value })}>
             {['Top Banner', 'MOA', 'Bottom Popup', 'Nav Bar L2', 'Interstitial'].map(p => <option key={p}>{p}</option>)}
+          </select>
+        </FieldRow>
+        <FieldRow label="Inventory Type" badge={<Badge type="mandatory" />}>
+          <select className="ht-select" value={data.echoInventoryType} onChange={e => onChange({ echoInventoryType: e.target.value })}>
+            <option>Standalone</option>
+            <option>Carousel</option>
+          </select>
+        </FieldRow>
+        <FieldRow label="Pages" badge={<Badge type="mandatory" />}>
+          <select className="ht-select" value={data.echoPages} onChange={e => onChange({ echoPages: e.target.value })}>
+            <option>All pages</option>
+            <option>Specific pages</option>
+          </select>
+          {data.echoPages === 'Specific pages' && (
+            <div style={{ marginTop: 8 }}>
+              <textarea
+                className="ht-input" rows={2}
+                value={data.echoSpecificPages.join('\n')}
+                onChange={e => onChange({ echoSpecificPages: e.target.value.split('\n') })}
+                placeholder="One page URL or path per line, e.g. /honda-city"
+                style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }}
+              />
+            </div>
+          )}
+        </FieldRow>
+        <FieldRow label="User State" badge={<Badge type="mandatory" />} helper="Users that are...">
+          <select className="ht-select" value={data.echoUserState} onChange={e => onChange({ echoUserState: e.target.value })}>
+            <option>Non-Loggedin</option>
+            <option>Logged in and not subscribed</option>
+            <option>Logged in and subscribed</option>
+          </select>
+        </FieldRow>
+        <FieldRow label="User Source" badge={<Badge type="mandatory" />}>
+          <select className="ht-select" value={data.echoUserSource} onChange={e => onChange({ echoUserSource: e.target.value })}>
+            {['All Sources', 'Organic', 'Direct', 'Paid Search', 'Paid Social', 'Referral', 'Email'].map(s => <option key={s}>{s}</option>)}
           </select>
         </FieldRow>
         <CohortField data={data} value={data.echoCohort} onChange={v => onChange({ echoCohort: v })}
@@ -278,6 +318,29 @@ function EchoTab({ data, onChange }: Props) {
             </div>
           </FieldRow>
         )}
+
+        {/* Additional settings */}
+        <FieldRow label="Additional settings" badge={<Badge type="optional" />}>
+          <Toggle checked={data.echoAdditionalSettingsEnabled} onChange={v => onChange({ echoAdditionalSettingsEnabled: v })} />
+          {data.echoAdditionalSettingsEnabled && (
+            <SubSection title="Priority & country">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 3 }}>Priority</label>
+                  <input className="ht-input" value={data.echoPriority} onChange={e => onChange({ echoPriority: e.target.value })} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 3 }}>Country</label>
+                  <select className="ht-select" value={data.echoCountry} onChange={e => onChange({ echoCountry: e.target.value })}>
+                    <option>All</option>
+                    <option>India</option>
+                    <option>India + NRI markets</option>
+                  </select>
+                </div>
+              </div>
+            </SubSection>
+          )}
+        </FieldRow>
 
         {/* UTM */}
         <FieldRow label="UTM Source (channel)" badge={<Badge type="optional" />}>
