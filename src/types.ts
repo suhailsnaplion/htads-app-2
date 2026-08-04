@@ -2,6 +2,55 @@ export type Screen = 'login' | 'dashboard' | 'wizard' | 'advanced' | 'admin' | '
 
 export type Channel = 'Echo' | 'DSP' | 'WhatsApp' | 'Voice AI' | 'Meta'
 
+// A single Echo placement/inventory. A campaign can run several of these on
+// Echo at once (e.g. Top Banner on Web + Interstitial on App), each with its
+// own delivery mechanics, while audience/tracking/form fields stay shared
+// across all of them at the channel level.
+export interface EchoInventory {
+  id: string
+  property: string
+  platform: string
+  position: string
+  inventoryType: string
+  pages: string
+  specificPages: string[]
+  creativeType: string
+  scheduleEnabled: boolean
+  daySchedule: string[]
+  timeStart: string
+  timeEnd: string
+  freqCapEnabled: boolean
+  freqSession: string
+  freqDaily: string
+  freqWeekly: string
+}
+
+// A single DSP buy — its own media type, bidding, and creative — while
+// audience/optimization/attribution/brand-safety stay shared across all of
+// them for this campaign.
+export interface DspInventory {
+  id: string
+  mediaType: string
+  biddingType: string
+  bidCap: string
+  creativeFileName: string
+}
+
+// A single WhatsApp message/template send, optionally to its own cohort —
+// while the send window and daily rate limit stay shared across all
+// messages sent on this campaign.
+export interface WaMessage {
+  id: string
+  waChannelId: string
+  cohort: string
+  templateId: string
+  var1: string
+  var2: string
+  var3: string
+  valueMethod: string
+  recipients: string
+}
+
 export interface CampaignFormData {
   // Step 1 — Identity
   campaignName: string
@@ -70,19 +119,8 @@ export interface CampaignFormData {
   channelBudgets: Record<Channel, string>
 
   // Step 3 — Echo
-  echoProperty: string
-  echoPlatform: string
-  echoPosition: string
+  echoInventories: EchoInventory[]
   echoCohort: string
-  echoCreativeType: string
-  echoScheduleEnabled: boolean
-  echoDaySchedule: string[]
-  echoTimeStart: string
-  echoTimeEnd: string
-  echoFreqCapEnabled: boolean
-  echoFreqSession: string
-  echoFreqDaily: string
-  echoFreqWeekly: string
   echoExperimentEnabled: boolean
   echoAbSplit: string
   echoAbVariantA: string
@@ -90,9 +128,6 @@ export interface CampaignFormData {
   echoFormFields: string[]
   echoUtmSource: string
   echoUtmMedium: string
-  echoInventoryType: string
-  echoPages: string
-  echoSpecificPages: string[]
   echoUserState: string
   echoUserSource: string
   echoAdditionalSettingsEnabled: boolean
@@ -102,9 +137,7 @@ export interface CampaignFormData {
   // Step 3 — DSP
   dspAudienceType: string
   dspCohort: string
-  dspMediaType: string
-  dspBiddingType: string
-  dspBidCap: string
+  dspInventories: DspInventory[]
   dspOptimizationGoal: string
   dspAttributionMethod: string
   dspBrandSafety: string
@@ -115,14 +148,7 @@ export interface CampaignFormData {
   dspGeoExclude: string[]
 
   // Step 3 — WhatsApp
-  waChannelId: string
-  waCohort: string
-  waTemplateId: string
-  waValueMethod: string
-  waRecipients: string
-  waVar1: string
-  waVar2: string
-  waVar3: string
+  waMessages: WaMessage[]
   waTimeStart: string
   waTimeEnd: string
   waDailyLimit: string
@@ -229,19 +255,16 @@ export const defaultFormData: CampaignFormData = {
   selectedChannels: ['Echo', 'DSP', 'WhatsApp'],
   channelRoles: { Echo: 'Primary Acquisition', DSP: 'Primary Acquisition', WhatsApp: 'Verification / Nurture', 'Voice AI': '', Meta: '' },
   channelBudgets: { Echo: '350000', DSP: '280000', WhatsApp: '120000', 'Voice AI': '', Meta: '' },
-  echoProperty: 'HTAuto Web',
-  echoPlatform: 'WEB',
-  echoPosition: 'Top Banner',
+  echoInventories: [
+    {
+      id: 'echo-inv-1', property: 'HTAuto Web', platform: 'WEB', position: 'Top Banner',
+      inventoryType: 'Standalone', pages: 'All pages', specificPages: [],
+      creativeType: 'Choose from templates',
+      scheduleEnabled: false, daySchedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], timeStart: '09:00', timeEnd: '21:00',
+      freqCapEnabled: true, freqSession: '1', freqDaily: '3', freqWeekly: '8',
+    },
+  ],
   echoCohort: '', // '' = inherit campaign default
-  echoCreativeType: 'Choose from templates',
-  echoScheduleEnabled: false,
-  echoDaySchedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-  echoTimeStart: '09:00',
-  echoTimeEnd: '21:00',
-  echoFreqCapEnabled: true,
-  echoFreqSession: '1',
-  echoFreqDaily: '3',
-  echoFreqWeekly: '8',
   echoExperimentEnabled: false,
   echoAbSplit: '50',
   echoAbVariantA: 'Variant A — Control',
@@ -249,9 +272,6 @@ export const defaultFormData: CampaignFormData = {
   echoFormFields: ['Name', 'Phone', 'City'],
   echoUtmSource: 'echo-onsite',
   echoUtmMedium: 'banner',
-  echoInventoryType: 'Standalone',
-  echoPages: 'All pages',
-  echoSpecificPages: [],
   echoUserState: 'Non-Loggedin',
   echoUserSource: 'All Sources',
   echoAdditionalSettingsEnabled: false,
@@ -259,9 +279,9 @@ export const defaultFormData: CampaignFormData = {
   echoCountry: 'All',
   dspAudienceType: 'Retargeting',
   dspCohort: '', // '' = inherit campaign default
-  dspMediaType: 'Display',
-  dspBiddingType: 'CPM',
-  dspBidCap: '85',
+  dspInventories: [
+    { id: 'dsp-inv-1', mediaType: 'Display', biddingType: 'CPM', bidCap: '85', creativeFileName: '' },
+  ],
   dspOptimizationGoal: 'New Visitor',
   dspAttributionMethod: 'Last Click',
   dspBrandSafety: 'Standard',
@@ -270,14 +290,12 @@ export const defaultFormData: CampaignFormData = {
   dspGeoOverride: false,
   dspGeoInclude: ['Maharashtra', 'Delhi NCR'],
   dspGeoExclude: [],
-  waChannelId: 'wa_htauto_primary',
-  waCohort: '', // '' = inherit campaign default
-  waTemplateId: 'lead_confirmation_v2',
-  waValueMethod: 'manual',
-  waRecipients: '+91 98200 11234',
-  waVar1: 'Ravi Sharma',
-  waVar2: 'Honda City',
-  waVar3: '24',
+  waMessages: [
+    {
+      id: 'wa-msg-1', waChannelId: 'wa_htauto_primary', cohort: '', templateId: 'lead_confirmation_v2',
+      var1: 'Ravi Sharma', var2: 'Honda City', var3: '24', valueMethod: 'manual', recipients: '+91 98200 11234',
+    },
+  ],
   waTimeStart: '10:00',
   waTimeEnd: '20:00',
   waDailyLimit: '5000',

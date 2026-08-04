@@ -79,13 +79,8 @@ function ChannelConfigSummary({ ch, data }: { ch: Channel; data: CampaignFormDat
 
   const renderLines = () => {
     if (ch === 'Echo') return [
-      { k: 'Property', v: data.echoProperty },
-      { k: 'Platform', v: data.echoPlatform },
-      { k: 'Position', v: data.echoPosition },
-      { k: 'Creative type', v: data.echoCreativeType },
+      { k: 'Inventories', v: data.echoInventories.map(i => `${i.property} · ${i.position}`).join(' | ') },
       { k: 'Cohort', v: data.echoCohort || 'None' },
-      { k: 'Schedule', v: data.echoScheduleEnabled ? `${data.echoDaySchedule.join(', ')} · ${data.echoTimeStart}–${data.echoTimeEnd}` : 'Always on' },
-      { k: 'Freq cap', v: data.echoFreqCapEnabled ? `${data.echoFreqSession} / session · ${data.echoFreqDaily} / day · ${data.echoFreqWeekly} / week` : 'Disabled' },
       { k: 'A/B experiment', v: data.echoExperimentEnabled ? `${data.echoAbSplit}% A / ${100 - parseInt(data.echoAbSplit || '50', 10)}% B` : 'Disabled' },
       { k: 'Form fields', v: data.echoFormFields.join(', ') || 'None' },
       { k: 'UTM source', v: data.echoUtmSource || '—' },
@@ -93,8 +88,7 @@ function ChannelConfigSummary({ ch, data }: { ch: Channel; data: CampaignFormDat
     if (ch === 'DSP') return [
       { k: 'Audience type', v: data.dspAudienceType },
       { k: 'Cohort', v: data.dspCohort || 'None' },
-      { k: 'Media type', v: data.dspMediaType },
-      { k: 'Bidding', v: `${data.dspBiddingType} · bid cap ₹${data.dspBidCap}` },
+      { k: 'Inventories', v: data.dspInventories.map(i => `${i.mediaType} · ${i.biddingType} ₹${i.bidCap}`).join(' | ') },
       { k: 'Optimization goal', v: data.dspOptimizationGoal },
       { k: 'Attribution', v: data.dspAttributionMethod },
       { k: 'Brand safety', v: data.dspBrandSafety },
@@ -102,8 +96,7 @@ function ChannelConfigSummary({ ch, data }: { ch: Channel; data: CampaignFormDat
       { k: 'Freq cap', v: data.dspFreqCap || 'None' },
     ]
     if (ch === 'WhatsApp') return [
-      { k: 'Template', v: data.waTemplateId },
-      { k: 'Value method', v: data.waValueMethod },
+      { k: 'Messages', v: data.waMessages.map(m => `${m.templateId}${m.cohort ? ` → ${m.cohort}` : ''}`).join(' | ') },
       { k: 'Send window', v: `${data.waTimeStart} – ${data.waTimeEnd}` },
       { k: 'Daily limit', v: data.waDailyLimit ? `${parseInt(data.waDailyLimit, 10).toLocaleString()} messages` : 'No cap' },
     ]
@@ -230,7 +223,6 @@ export default function Step4Review({ data, onChange, onLaunch, onEdit }: Props)
         <KV label="City" value={data.city} />
         <KV label="Zone" value={data.zone} />
         {data.pincode && <KV label="Pincode" value={data.pincode} mono />}
-        {data.drrCap && <KV label="DRR Cap" value={`${data.drrCap} leads/day`} />}
       </ReviewSection>
 
       {(data.utmSource || data.utmCampaign || data.utmMedium) && (

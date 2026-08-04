@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Badge from '../../components/Badge'
 import Toggle from '../../components/Toggle'
 import { api } from '../../api'
-import type { CampaignFormData, Channel } from '../../types'
+import type { CampaignFormData, Channel, EchoInventory, DspInventory, WaMessage } from '../../types'
 
 interface Props {
   data: CampaignFormData
@@ -93,6 +93,57 @@ function CohortField({ data, value, onChange, options }: { data: CampaignFormDat
   )
 }
 
+function InstanceAccordion<T extends { id: string }>({
+  title, instances, onAdd, onRemove, onUpdate, renderSummary, renderFields, addLabel,
+}: {
+  title: string
+  instances: T[]
+  onAdd: () => void
+  onRemove: (id: string) => void
+  onUpdate: (id: string, patch: Partial<T>) => void
+  renderSummary: (item: T, index: number) => string
+  renderFields: (item: T, update: (patch: Partial<T>) => void) => React.ReactNode
+  addLabel: string
+}) {
+  const [openId, setOpenId] = useState<string | null>(instances[0]?.id ?? null)
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+        {title} <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>— configure each one separately, shared settings below apply to all</span>
+      </div>
+      {instances.map((inst, i) => {
+        const isOpen = openId === inst.id
+        return (
+          <div key={inst.id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, marginBottom: 10, overflow: 'hidden' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: isOpen ? '#f8fafc' : 'white', cursor: 'pointer' }}
+              onClick={() => setOpenId(isOpen ? null : inst.id)}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{i + 1}. {renderSummary(inst, i)}</span>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                {instances.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={e => { e.stopPropagation(); onRemove(inst.id) }}
+                    style={{ fontSize: 11.5, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >✕ Remove</button>
+                )}
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>{isOpen ? '▲' : '▼'}</span>
+              </div>
+            </div>
+            {isOpen && (
+              <div style={{ padding: '14px 16px', borderTop: '1px solid #e2e8f0' }}>
+                {renderFields(inst, patch => onUpdate(inst.id, patch))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      <button type="button" className="btn-secondary" onClick={onAdd} style={{ fontSize: 12.5 }}>{addLabel}</button>
+    </div>
+  )
+}
+
 function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 6 }}>
@@ -153,6 +204,20 @@ function EchoTab({ data, onChange }: Props) {
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const isHTAuto = data.businessUnit === 'HTAuto'
 
+  const addInventory = () => {
+    const newInv: EchoInventory = {
+      id: `echo-inv-${Date.now()}`, property: 'HTAuto Web', platform: 'WEB', position: 'Top Banner',
+      inventoryType: 'Standalone', pages: 'All pages', specificPages: [],
+      creativeType: 'Choose from templates',
+      scheduleEnabled: false, daySchedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], timeStart: '09:00', timeEnd: '21:00',
+      freqCapEnabled: true, freqSession: '1', freqDaily: '3', freqWeekly: '8',
+    }
+    onChange({ echoInventories: [...data.echoInventories, newInv] })
+  }
+  const removeInventory = (id: string) => onChange({ echoInventories: data.echoInventories.filter(i => i.id !== id) })
+  const updateInventory = (id: string, patch: Partial<EchoInventory>) =>
+    onChange({ echoInventories: data.echoInventories.map(i => i.id === id ? { ...i, ...patch } : i) })
+
   return (
     <div className="section-card">
       <div className="section-card-header">
@@ -164,45 +229,107 @@ function EchoTab({ data, onChange }: Props) {
       </div>
       <div className="section-card-body">
 
-        {/* Placement */}
-        <FieldRow label="Property" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoProperty} onChange={e => onChange({ echoProperty: e.target.value })}>
-            {['HTAuto Web', 'HT Web', 'LM Web', 'LH Web', 'HT App'].map(p => <option key={p}>{p}</option>)}
-          </select>
-        </FieldRow>
-        <FieldRow label="Platform" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoPlatform} onChange={e => onChange({ echoPlatform: e.target.value })}>
-            {['WEB', 'MWEB', 'AMP', 'AOS', 'iOS'].map(p => <option key={p}>{p}</option>)}
-          </select>
-        </FieldRow>
-        <FieldRow label="Position / Placement" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoPosition} onChange={e => onChange({ echoPosition: e.target.value })}>
-            {['Top Banner', 'MOA', 'Bottom Popup', 'Nav Bar L2', 'Interstitial'].map(p => <option key={p}>{p}</option>)}
-          </select>
-        </FieldRow>
-        <FieldRow label="Inventory Type" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoInventoryType} onChange={e => onChange({ echoInventoryType: e.target.value })}>
-            <option>Standalone</option>
-            <option>Carousel</option>
-          </select>
-        </FieldRow>
-        <FieldRow label="Pages" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoPages} onChange={e => onChange({ echoPages: e.target.value })}>
-            <option>All pages</option>
-            <option>Specific pages</option>
-          </select>
-          {data.echoPages === 'Specific pages' && (
-            <div style={{ marginTop: 8 }}>
-              <textarea
-                className="ht-input" rows={2}
-                value={data.echoSpecificPages.join('\n')}
-                onChange={e => onChange({ echoSpecificPages: e.target.value.split('\n') })}
-                placeholder="One page URL or path per line, e.g. /honda-city"
-                style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }}
-              />
-            </div>
+        <InstanceAccordion<EchoInventory>
+          title="Inventories"
+          instances={data.echoInventories}
+          onAdd={addInventory}
+          onRemove={removeInventory}
+          onUpdate={updateInventory}
+          addLabel="+ Add another inventory"
+          renderSummary={inv => `${inv.property} · ${inv.position}`}
+          renderFields={(inv, update) => (
+            <>
+              <FieldRow label="Property" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.property} onChange={e => update({ property: e.target.value })}>
+                  {['HTAuto Web', 'HT Web', 'LM Web', 'LH Web', 'HT App'].map(p => <option key={p}>{p}</option>)}
+                </select>
+              </FieldRow>
+              <FieldRow label="Platform" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.platform} onChange={e => update({ platform: e.target.value })}>
+                  {['WEB', 'MWEB', 'AMP', 'AOS', 'iOS'].map(p => <option key={p}>{p}</option>)}
+                </select>
+              </FieldRow>
+              <FieldRow label="Position / Placement" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.position} onChange={e => update({ position: e.target.value })}>
+                  {['Top Banner', 'MOA', 'Bottom Popup', 'Nav Bar L2', 'Interstitial'].map(p => <option key={p}>{p}</option>)}
+                </select>
+              </FieldRow>
+              <FieldRow label="Inventory Type" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.inventoryType} onChange={e => update({ inventoryType: e.target.value })}>
+                  <option>Standalone</option>
+                  <option>Carousel</option>
+                </select>
+              </FieldRow>
+              <FieldRow label="Pages" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.pages} onChange={e => update({ pages: e.target.value })}>
+                  <option>All pages</option>
+                  <option>Specific pages</option>
+                </select>
+                {inv.pages === 'Specific pages' && (
+                  <div style={{ marginTop: 8 }}>
+                    <textarea
+                      className="ht-input" rows={2}
+                      value={inv.specificPages.join('\n')}
+                      onChange={e => update({ specificPages: e.target.value.split('\n') })}
+                      placeholder="One page URL or path per line, e.g. /honda-city"
+                      style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                    />
+                  </div>
+                )}
+              </FieldRow>
+              <FieldRow label="Creative / Content Type" badge={<Badge type="mandatory" />}>
+                <select className="ht-select" value={inv.creativeType} onChange={e => update({ creativeType: e.target.value })}>
+                  {['Choose from templates', 'Upload image', 'Custom HTML', 'SDK intervention'].map(t => <option key={t}>{t}</option>)}
+                </select>
+              </FieldRow>
+              <FieldRow label="Schedule (day/time windows)" badge={<Badge type="optional" />}>
+                <Toggle checked={inv.scheduleEnabled} onChange={v => update({ scheduleEnabled: v })} />
+                {inv.scheduleEnabled && (
+                  <DayTimePicker
+                    days={DAYS}
+                    selectedDays={inv.daySchedule}
+                    timeStart={inv.timeStart}
+                    timeEnd={inv.timeEnd}
+                    onDaysChange={v => update({ daySchedule: v })}
+                    onTimeStartChange={v => update({ timeStart: v })}
+                    onTimeEndChange={v => update({ timeEnd: v })}
+                  />
+                )}
+              </FieldRow>
+              <FieldRow label="Frequency Capping" badge={<Badge type="optional" />}>
+                <Toggle checked={inv.freqCapEnabled} onChange={v => update({ freqCapEnabled: v })} />
+                {inv.freqCapEnabled && (
+                  <SubSection title="Cap limits">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                      {[
+                        { key: 'freqSession' as const, label: 'Session cap', val: inv.freqSession },
+                        { key: 'freqDaily' as const, label: 'Daily cap', val: inv.freqDaily },
+                        { key: 'freqWeekly' as const, label: 'Weekly cap', val: inv.freqWeekly },
+                      ].map(f => (
+                        <div key={f.key}>
+                          <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                          <input
+                            className="ht-input"
+                            value={f.val}
+                            onChange={e => update({ [f.key]: e.target.value })}
+                            placeholder="—"
+                            style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </SubSection>
+                )}
+              </FieldRow>
+            </>
           )}
-        </FieldRow>
+        />
+
+        <div style={{ height: 1, background: '#e2e8f0', margin: '18px 0' }} />
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          Shared across all inventories on this channel
+        </div>
+
         <FieldRow label="User State" badge={<Badge type="mandatory" />} helper="Users that are...">
           <select className="ht-select" value={data.echoUserState} onChange={e => onChange({ echoUserState: e.target.value })}>
             <option>Non-Loggedin</option>
@@ -217,54 +344,6 @@ function EchoTab({ data, onChange }: Props) {
         </FieldRow>
         <CohortField data={data} value={data.echoCohort} onChange={v => onChange({ echoCohort: v })}
           options={['HTAuto_HighIntent_Apr26', 'Realtime: Cart Abandoners', 'Education_Web_Leads_Q2']} />
-        <FieldRow label="Creative / Content Type" badge={<Badge type="mandatory" />}>
-          <select className="ht-select" value={data.echoCreativeType} onChange={e => onChange({ echoCreativeType: e.target.value })}>
-            {['Choose from templates', 'Upload image', 'Custom HTML', 'SDK intervention'].map(t => <option key={t}>{t}</option>)}
-          </select>
-        </FieldRow>
-
-        {/* Schedule */}
-        <FieldRow label="Schedule (day/time windows)" badge={<Badge type="optional" />}>
-          <Toggle checked={data.echoScheduleEnabled} onChange={v => onChange({ echoScheduleEnabled: v })} />
-          {data.echoScheduleEnabled && (
-            <DayTimePicker
-              days={DAYS}
-              selectedDays={data.echoDaySchedule}
-              timeStart={data.echoTimeStart}
-              timeEnd={data.echoTimeEnd}
-              onDaysChange={v => onChange({ echoDaySchedule: v })}
-              onTimeStartChange={v => onChange({ echoTimeStart: v })}
-              onTimeEndChange={v => onChange({ echoTimeEnd: v })}
-            />
-          )}
-        </FieldRow>
-
-        {/* Frequency capping */}
-        <FieldRow label="Frequency Capping" badge={<Badge type="optional" />}>
-          <Toggle checked={data.echoFreqCapEnabled} onChange={v => onChange({ echoFreqCapEnabled: v })} />
-          {data.echoFreqCapEnabled && (
-            <SubSection title="Cap limits">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {[
-                  { key: 'echoFreqSession' as const, label: 'Session cap', val: data.echoFreqSession },
-                  { key: 'echoFreqDaily' as const, label: 'Daily cap', val: data.echoFreqDaily },
-                  { key: 'echoFreqWeekly' as const, label: 'Weekly cap', val: data.echoFreqWeekly },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
-                    <input
-                      className="ht-input"
-                      value={f.val}
-                      onChange={e => onChange({ [f.key]: e.target.value })}
-                      placeholder="—"
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </SubSection>
-          )}
-        </FieldRow>
 
         {/* A/B Experiment */}
         <FieldRow label="Experiment (A/B)" badge={<Badge type="optional" />}>
@@ -365,6 +444,13 @@ const STATES_ALL = ['Maharashtra', 'Delhi NCR', 'Karnataka', 'Tamil Nadu', 'Guja
 
 // ─── DSP ────────────────────────────────────────────────────────────────────
 function DSPTab({ data, onChange }: Props) {
+  const addInventory = () => {
+    const newInv: DspInventory = { id: `dsp-inv-${Date.now()}`, mediaType: 'Display', biddingType: 'CPM', bidCap: '85', creativeFileName: '' }
+    onChange({ dspInventories: [...data.dspInventories, newInv] })
+  }
+  const removeInventory = (id: string) => onChange({ dspInventories: data.dspInventories.filter(i => i.id !== id) })
+  const updateInventory = (id: string, patch: Partial<DspInventory>) =>
+    onChange({ dspInventories: data.dspInventories.map(i => i.id === id ? { ...i, ...patch } : i) })
 
   return (
     <div className="section-card">
@@ -384,43 +470,74 @@ function DSPTab({ data, onChange }: Props) {
         </FieldRow>
         <CohortField data={data} value={data.dspCohort} onChange={v => onChange({ dspCohort: v })}
           options={['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers', 'Realtime: Cart Abandoners']} />
-        <FieldRow label="Media Type" badge={<Badge type="mandatory" />}>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {['Display', 'Video'].map(t => (
-              <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                <input type="radio" name="dspMediaType" value={t} checked={data.dspMediaType === t} onChange={() => onChange({ dspMediaType: t })} style={{ accentColor: '#0ea5e9' }} />
-                <span style={{ fontWeight: 500, color: '#334155' }}>{t}</span>
-              </label>
-            ))}
-          </div>
-        </FieldRow>
 
-        {/* Bidding */}
-        <FieldRow label="Bidding Type" badge={<Badge type="mandatory" />}>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {['CPM', 'CPC'].map(t => (
-              <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                <input type="radio" name="dspBidding" value={t} checked={data.dspBiddingType === t} onChange={() => onChange({ dspBiddingType: t })} style={{ accentColor: '#0ea5e9' }} />
-                <span style={{ fontWeight: 500, color: '#334155' }}>{t}</span>
-              </label>
-            ))}
-          </div>
-        </FieldRow>
-        <FieldRow
-          label={`Bid Cap (₹ per ${data.dspBiddingType === 'CPM' ? '1,000 impressions' : 'click'})`}
-          badge={<Badge type="mandatory" />}
-        >
-          <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
-            <span style={{ padding: '6px 10px', background: '#f8fafc', borderRight: '1px solid #e2e8f0', fontSize: 13, fontFamily: 'var(--font-mono)', color: '#334155' }}>₹</span>
-            <input
-              className="ht-input"
-              value={data.dspBidCap}
-              onChange={e => onChange({ dspBidCap: e.target.value })}
-              placeholder="0"
-              style={{ border: 'none', borderRadius: 0, fontFamily: 'var(--font-mono)' }}
-            />
-          </div>
-        </FieldRow>
+        <div style={{ height: 1, background: '#e2e8f0', margin: '18px 0' }} />
+
+        <InstanceAccordion<DspInventory>
+          title="Inventories (buys)"
+          instances={data.dspInventories}
+          onAdd={addInventory}
+          onRemove={removeInventory}
+          onUpdate={updateInventory}
+          addLabel="+ Add another inventory"
+          renderSummary={inv => `${inv.mediaType} · ${inv.biddingType} ₹${inv.bidCap || '0'}`}
+          renderFields={(inv, update) => (
+            <>
+              <FieldRow label="Media Type" badge={<Badge type="mandatory" />}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {['Display', 'Video'].map(t => (
+                    <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                      <input type="radio" name={`dspMediaType-${inv.id}`} value={t} checked={inv.mediaType === t} onChange={() => update({ mediaType: t })} style={{ accentColor: '#0ea5e9' }} />
+                      <span style={{ fontWeight: 500, color: '#334155' }}>{t}</span>
+                    </label>
+                  ))}
+                </div>
+              </FieldRow>
+              <FieldRow label="Bidding Type" badge={<Badge type="mandatory" />}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {['CPM', 'CPC'].map(t => (
+                    <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                      <input type="radio" name={`dspBidding-${inv.id}`} value={t} checked={inv.biddingType === t} onChange={() => update({ biddingType: t })} style={{ accentColor: '#0ea5e9' }} />
+                      <span style={{ fontWeight: 500, color: '#334155' }}>{t}</span>
+                    </label>
+                  ))}
+                </div>
+              </FieldRow>
+              <FieldRow label={`Bid Cap (₹ per ${inv.biddingType === 'CPM' ? '1,000 impressions' : 'click'})`} badge={<Badge type="mandatory" />}>
+                <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
+                  <span style={{ padding: '6px 10px', background: '#f8fafc', borderRight: '1px solid #e2e8f0', fontSize: 13, fontFamily: 'var(--font-mono)', color: '#334155' }}>₹</span>
+                  <input
+                    className="ht-input"
+                    value={inv.bidCap}
+                    onChange={e => update({ bidCap: e.target.value })}
+                    placeholder="0"
+                    style={{ border: 'none', borderRadius: 0, fontFamily: 'var(--font-mono)' }}
+                  />
+                </div>
+              </FieldRow>
+              <FieldRow label="Creative Upload" badge={<Badge type="mandatory" />}>
+                <div style={{
+                  border: '2px dashed #bae6fd', borderRadius: 6, padding: '18px 16px',
+                  textAlign: 'center', cursor: 'pointer', background: '#f0f9ff',
+                }}>
+                  <div style={{ fontSize: 22, marginBottom: 4, color: '#0ea5e9' }}>⬆</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 500, color: '#0369a1' }}>Drop creative files here or click to upload</div>
+                  <div style={{ fontSize: 11, color: '#7dd3fc', marginTop: 3 }}>JPG, PNG, GIF, MP4 · Max 10 MB per file · Multiple sizes accepted</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                    {['320×50', '300×250', '728×90', '970×90', '1280×720'].map(s => (
+                      <span key={s} style={{ fontSize: 10.5, fontFamily: 'var(--font-mono)', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: 3 }}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </FieldRow>
+            </>
+          )}
+        />
+
+        <div style={{ height: 1, background: '#e2e8f0', margin: '18px 0' }} />
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          Shared across all inventories on this channel
+        </div>
 
         <FieldRow label="Optimization Goal" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.dspOptimizationGoal} onChange={e => onChange({ dspOptimizationGoal: e.target.value })}>
@@ -460,30 +577,12 @@ function DSPTab({ data, onChange }: Props) {
                   <ChipMultiSelect options={STATES_ALL} selected={data.dspGeoInclude} onChange={v => onChange({ dspGeoInclude: v })} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600, marginBottom: 5 }}>Exclude geo</div>
+                  <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginBottom: 5 }}>⊘ Exclude geo</div>
                   <ChipMultiSelect options={STATES_ALL} selected={data.dspGeoExclude} onChange={v => onChange({ dspGeoExclude: v })} />
                 </div>
               </div>
             </SubSection>
           )}
-        </FieldRow>
-
-        {/* Creative upload */}
-        <FieldRow label="Creative Upload" badge={<Badge type="mandatory" />}>
-          <div style={{
-            border: '2px dashed #bae6fd', borderRadius: 6, padding: '18px 16px',
-            textAlign: 'center', cursor: 'pointer', background: '#f0f9ff',
-            transition: 'border-color 0.15s',
-          }}>
-            <div style={{ fontSize: 22, marginBottom: 4, color: '#0ea5e9' }}>⬆</div>
-            <div style={{ fontSize: 12.5, fontWeight: 500, color: '#0369a1' }}>Drop creative files here or click to upload</div>
-            <div style={{ fontSize: 11, color: '#7dd3fc', marginTop: 3 }}>JPG, PNG, GIF, MP4 · Max 10 MB per file · Multiple sizes accepted</div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-              {['320×50', '300×250', '728×90', '970×90', '1280×720'].map(s => (
-                <span key={s} style={{ fontSize: 10.5, fontFamily: 'var(--font-mono)', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: 3 }}>{s}</span>
-              ))}
-            </div>
-          </div>
         </FieldRow>
       </div>
     </div>
@@ -492,11 +591,6 @@ function DSPTab({ data, onChange }: Props) {
 
 // ─── WhatsApp ───────────────────────────────────────────────────────────────
 function WhatsAppTab({ data, onChange }: Props) {
-  const tpl = WA_TEMPLATES[data.waTemplateId]
-  const varValues = [data.waVar1, data.waVar2, data.waVar3]
-  const [testNumber, setTestNumber] = useState('')
-  const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  const [testMessage, setTestMessage] = useState('')
   const [channels, setChannels] = useState<{ id: string; label: string; phone_number: string }[]>(
     WA_CHANNELS_FALLBACK.map(c => ({ id: c.id, label: c.label, phone_number: c.number }))
   )
@@ -509,25 +603,16 @@ function WhatsAppTab({ data, onChange }: Props) {
     return () => { cancelled = true }
   }, [])
 
-  const sendTest = async () => {
-    const digits = testNumber.replace(/\D/g, '')
-    if (digits.length < 10) { setTestStatus('error'); setTestMessage('Enter a valid 10-digit phone number'); return }
-    setTestStatus('sending')
-    try {
-      const result = await api.testSendWhatsapp({ channelId: data.waChannelId, phone: digits, templateId: data.waTemplateId, vars: varValues })
-      setTestStatus(result.status === 'failed' ? 'error' : 'sent')
-      setTestMessage(result.message)
-    } catch (err) {
-      setTestStatus('error')
-      setTestMessage(err instanceof Error ? err.message : 'Could not reach the server')
+  const addMessage = () => {
+    const newMsg: WaMessage = {
+      id: `wa-msg-${Date.now()}`, waChannelId: channels[0]?.id || 'wa_htauto_primary', cohort: '',
+      templateId: 'lead_confirmation_v2', var1: '', var2: '', var3: '', valueMethod: 'manual', recipients: '',
     }
-    setTimeout(() => setTestStatus('idle'), 4000)
+    onChange({ waMessages: [...data.waMessages, newMsg] })
   }
-
-  const previewBody = tpl ? tpl.vars.reduce((body, _v, i) => {
-    const val = varValues[i] || `{{${i + 1}}}`
-    return body.replace(`{{${i + 1}}}`, val)
-  }, tpl.body) : ''
+  const removeMessage = (id: string) => onChange({ waMessages: data.waMessages.filter(m => m.id !== id) })
+  const updateMessage = (id: string, patch: Partial<WaMessage>) =>
+    onChange({ waMessages: data.waMessages.map(m => m.id === id ? { ...m, ...patch } : m) })
 
   return (
     <div className="section-card">
@@ -540,141 +625,24 @@ function WhatsAppTab({ data, onChange }: Props) {
       </div>
       <div className="section-card-body">
 
-        <FieldRow label="WhatsApp Channel" badge={<Badge type="mandatory" />}
-          helper="The sending number recipients will see this message come from.">
-          <select className="ht-select" value={data.waChannelId} onChange={e => onChange({ waChannelId: e.target.value })}>
-            {channels.map(c => (
-              <option key={c.id} value={c.id}>{c.label} — {c.phone_number}</option>
-            ))}
-          </select>
-        </FieldRow>
+        <InstanceAccordion<WaMessage>
+          title="Messages"
+          instances={data.waMessages}
+          onAdd={addMessage}
+          onRemove={removeMessage}
+          onUpdate={updateMessage}
+          addLabel="+ Add another message"
+          renderSummary={msg => `${msg.templateId}${msg.cohort ? ` → ${msg.cohort}` : ''}`}
+          renderFields={(msg, update) => (
+            <WaMessageFields msg={msg} update={update} channels={channels} objective={data.objective} />
+          )}
+        />
 
-        <CohortField data={data} value={data.waCohort} onChange={v => onChange({ waCohort: v })}
-          options={['HTAuto_HighIntent_Apr26', 'Realtime: Form Abandoners']} />
-        <FieldRow label="Template ID" badge={<Badge type="mandatory" />}
-          helper="Only pre-approved WhatsApp Business templates may be used.">
-          <select className="ht-select" value={data.waTemplateId} onChange={e => onChange({ waTemplateId: e.target.value })}>
-            {Object.keys(WA_TEMPLATES).map(t => <option key={t}>{t}</option>)}
-          </select>
-        </FieldRow>
+        <div style={{ height: 1, background: '#e2e8f0', margin: '18px 0' }} />
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          Shared across all messages on this channel
+        </div>
 
-        {/* Template preview + variable inputs */}
-        {tpl && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, padding: '12px 0' }}>
-            <div>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: '#334155', marginBottom: 8 }}>Template variables</div>
-              {tpl.vars.map((varName, i) => {
-                const keys: ('waVar1' | 'waVar2' | 'waVar3')[] = ['waVar1', 'waVar2', 'waVar3']
-                return (
-                  <div key={varName} style={{ marginBottom: 8 }}>
-                    <label style={{ fontSize: 11.5, fontWeight: 500, color: '#64748b', display: 'block', marginBottom: 4 }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, background: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: 3, marginRight: 5 }}>{`{{${i + 1}}}`}</span>
-                      {varName}
-                    </label>
-                    <input className="ht-input" value={varValues[i]} onChange={e => onChange({ [keys[i]]: e.target.value })} placeholder={varName} />
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Phone mockup */}
-            <div>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: '#334155', marginBottom: 8 }}>Message preview</div>
-              <div style={{
-                width: 260, background: '#0a0f1a', borderRadius: 34, padding: '20px 12px',
-                boxShadow: '0 16px 44px rgba(0,0,0,0.38)', border: '6px solid #1a1f2b',
-              }}>
-                <div style={{
-                  background: 'linear-gradient(180deg,#0b7a67,#075e54)', borderRadius: '14px 14px 0 0',
-                  padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
-                }}>
-                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: 'white', fontWeight: 700 }}>H</div>
-                  <div>
-                    <div style={{ color: 'white', fontSize: 13.5, fontWeight: 700 }}>HT Ads</div>
-                    <div style={{ color: '#c8f7dc', fontSize: 10.5 }}>✓ Verified Business</div>
-                  </div>
-                </div>
-                <div style={{
-                  background: '#0b141a', minHeight: 190, padding: '14px 10px', display: 'flex',
-                  flexDirection: 'column', gap: 8, justifyContent: 'flex-end',
-                  backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)',
-                  backgroundSize: '14px 14px',
-                }}>
-                  <div style={{ background: '#1f2c34', borderRadius: '2px 12px 12px 12px', padding: '10px 12px', maxWidth: '92%', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
-                    <p style={{ fontSize: 13, color: '#e9edef', lineHeight: 1.55, margin: 0 }}>{previewBody}</p>
-                    <span style={{ fontSize: 10, color: '#8696a0', display: 'block', textAlign: 'right', marginTop: 6 }}>10:32 AM ✓✓</span>
-                  </div>
-                </div>
-                <div style={{ background: '#0b141a', borderRadius: '0 0 14px 14px', padding: '10px 10px', display: 'flex', gap: 8 }}>
-                  <div style={{ flex: 1, height: 30, background: '#1f2c34', borderRadius: 15 }} />
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'white' }}>➤</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <FieldRow label="Value Entry Method" badge={<Badge type="mandatory" />}>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {[{ v: 'manual', l: 'Enter values manually' }, { v: 'upload', l: 'Upload file with values per user' }].map(opt => (
-              <label key={opt.v} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                <input type="radio" name="waMethod" value={opt.v} checked={data.waValueMethod === opt.v} onChange={() => onChange({ waValueMethod: opt.v })} style={{ accentColor: '#22c55e' }} />
-                <span style={{ fontWeight: 500, color: '#334155' }}>{opt.l}</span>
-              </label>
-            ))}
-          </div>
-        </FieldRow>
-
-        {data.waValueMethod === 'manual' && (
-          <>
-            <FieldRow label="Recipient Phone Numbers" badge={<Badge type="mandatory" condition="Manual mode + no cohort" />}
-              helper="One number per line. Include country code (+91...).">
-              <textarea
-                className="ht-input" rows={3}
-                defaultValue="+91 98200 11234"
-                placeholder="One phone number per line"
-                style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }}
-              />
-            </FieldRow>
-
-            <FieldRow label="Test This Message" badge={<Badge type="optional" />}
-              helper="Sends the message above to one number right now, using the live values entered.">
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  className="ht-input"
-                  value={testNumber}
-                  onChange={e => setTestNumber(e.target.value)}
-                  placeholder="Your phone number, e.g. 9876543210"
-                  style={{ fontFamily: 'var(--font-mono)', maxWidth: 220 }}
-                />
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={sendTest}
-                  disabled={testStatus === 'sending'}
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  {testStatus === 'sending' ? 'Sending…' : '📲 Test the message'}
-                </button>
-                {testStatus === 'sent' && <span style={{ fontSize: 12, color: '#15803d', fontWeight: 600 }}>✓ {testMessage || 'Sent'}</span>}
-                {testStatus === 'error' && <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>{testMessage || "Couldn't send — check the number"}</span>}
-              </div>
-            </FieldRow>
-          </>
-        )}
-
-        {data.waValueMethod === 'upload' && (
-          <FieldRow label="Cohort / User File" badge={<Badge type="conditional" condition="Upload mode" />}>
-            <div style={{ border: '2px dashed #bbf7d0', borderRadius: 6, padding: '14px', background: '#f0fdf4', cursor: 'pointer' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 500, color: '#15803d', marginBottom: 4 }}>Upload CSV / XLSX</div>
-              <div style={{ fontSize: 10.5, color: '#4ade80' }}>
-                Required columns: phone_number, var1, var2{tpl && tpl.vars.length > 2 ? ', var3' : ''}
-              </div>
-            </div>
-          </FieldRow>
-        )}
-
-        {/* Send window */}
         <FieldRow label="Send Window" badge={<Badge type="optional" />}
           helper="Messages will only be dispatched in this time window.">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -690,7 +658,7 @@ function WhatsAppTab({ data, onChange }: Props) {
         </FieldRow>
 
         <FieldRow label="Daily Rate Limit" badge={<Badge type="optional" />}
-          helper="Maximum messages to dispatch per day across this campaign.">
+          helper="Maximum messages to dispatch per day across this campaign, summed across all messages above.">
           <input className="ht-input" value={data.waDailyLimit} onChange={e => onChange({ waDailyLimit: e.target.value })} placeholder="5000" style={{ fontFamily: 'var(--font-mono)' }} />
         </FieldRow>
 
@@ -702,6 +670,183 @@ function WhatsAppTab({ data, onChange }: Props) {
         )}
       </div>
     </div>
+  )
+}
+
+function WaMessageFields({ msg, update, channels, objective }: {
+  msg: WaMessage
+  update: (patch: Partial<WaMessage>) => void
+  channels: { id: string; label: string; phone_number: string }[]
+  objective: string
+}) {
+  const tpl = WA_TEMPLATES[msg.templateId]
+  const varValues = [msg.var1, msg.var2, msg.var3]
+  const [testNumber, setTestNumber] = useState('')
+  const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [testMessage, setTestMessage] = useState('')
+
+  const sendTest = async () => {
+    const digits = testNumber.replace(/\D/g, '')
+    if (digits.length < 10) { setTestStatus('error'); setTestMessage('Enter a valid 10-digit phone number'); return }
+    setTestStatus('sending')
+    try {
+      const result = await api.testSendWhatsapp({ channelId: msg.waChannelId, phone: digits, templateId: msg.templateId, vars: varValues })
+      setTestStatus(result.status === 'failed' ? 'error' : 'sent')
+      setTestMessage(result.message)
+    } catch (err) {
+      setTestStatus('error')
+      setTestMessage(err instanceof Error ? err.message : 'Could not reach the server')
+    }
+    setTimeout(() => setTestStatus('idle'), 4000)
+  }
+
+  const previewBody = tpl ? tpl.vars.reduce((body, _v, i) => {
+    const val = varValues[i] || `{{${i + 1}}}`
+    return body.replace(`{{${i + 1}}}`, val)
+  }, tpl.body) : ''
+
+  return (
+    <>
+      <FieldRow label="WhatsApp Channel" badge={<Badge type="mandatory" />}
+        helper="The sending number recipients will see this message come from.">
+        <select className="ht-select" value={msg.waChannelId} onChange={e => update({ waChannelId: e.target.value })}>
+          {channels.map(c => (
+            <option key={c.id} value={c.id}>{c.label} — {c.phone_number}</option>
+          ))}
+        </select>
+      </FieldRow>
+
+      <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}>
+        <select className="ht-select" value={msg.cohort} onChange={e => update({ cohort: e.target.value })}>
+          <option value="">Use campaign default</option>
+          <option>HTAuto_HighIntent_Apr26</option>
+          <option>Realtime: Form Abandoners</option>
+        </select>
+      </FieldRow>
+
+      <FieldRow label="Template ID" badge={<Badge type="mandatory" />}
+        helper="Only pre-approved WhatsApp Business templates may be used.">
+        <select className="ht-select" value={msg.templateId} onChange={e => update({ templateId: e.target.value })}>
+          {Object.keys(WA_TEMPLATES).map(t => <option key={t}>{t}</option>)}
+        </select>
+      </FieldRow>
+
+      {tpl && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, padding: '12px 0' }}>
+          <div>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: '#334155', marginBottom: 8 }}>Template variables</div>
+            {tpl.vars.map((varName, i) => {
+              const keys: ('var1' | 'var2' | 'var3')[] = ['var1', 'var2', 'var3']
+              return (
+                <div key={varName} style={{ marginBottom: 8 }}>
+                  <label style={{ fontSize: 11.5, fontWeight: 500, color: '#64748b', display: 'block', marginBottom: 4 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, background: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: 3, marginRight: 5 }}>{`{{${i + 1}}}`}</span>
+                    {varName}
+                  </label>
+                  <input className="ht-input" value={varValues[i]} onChange={e => update({ [keys[i]]: e.target.value })} placeholder={varName} />
+                </div>
+              )
+            })}
+          </div>
+
+          <div>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: '#334155', marginBottom: 8 }}>Message preview</div>
+            <div style={{
+              width: 260, background: '#0a0f1a', borderRadius: 34, padding: '20px 12px',
+              boxShadow: '0 16px 44px rgba(0,0,0,0.38)', border: '6px solid #1a1f2b',
+            }}>
+              <div style={{
+                background: 'linear-gradient(180deg,#0b7a67,#075e54)', borderRadius: '14px 14px 0 0',
+                padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: 'white', fontWeight: 700 }}>H</div>
+                <div>
+                  <div style={{ color: 'white', fontSize: 13.5, fontWeight: 700 }}>HT Ads</div>
+                  <div style={{ color: '#c8f7dc', fontSize: 10.5 }}>✓ Verified Business</div>
+                </div>
+              </div>
+              <div style={{
+                background: '#0b141a', minHeight: 190, padding: '14px 10px', display: 'flex',
+                flexDirection: 'column', gap: 8, justifyContent: 'flex-end',
+                backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)',
+                backgroundSize: '14px 14px',
+              }}>
+                <div style={{ background: '#1f2c34', borderRadius: '2px 12px 12px 12px', padding: '10px 12px', maxWidth: '92%', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+                  <p style={{ fontSize: 13, color: '#e9edef', lineHeight: 1.55, margin: 0 }}>{previewBody}</p>
+                  <span style={{ fontSize: 10, color: '#8696a0', display: 'block', textAlign: 'right', marginTop: 6 }}>10:32 AM ✓✓</span>
+                </div>
+              </div>
+              <div style={{ background: '#0b141a', borderRadius: '0 0 14px 14px', padding: '10px 10px', display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1, height: 30, background: '#1f2c34', borderRadius: 15 }} />
+                <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#00a884', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'white' }}>➤</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <FieldRow label="Value Entry Method" badge={<Badge type="mandatory" />}>
+        <div style={{ display: 'flex', gap: 12 }}>
+          {[{ v: 'manual', l: 'Enter values manually' }, { v: 'upload', l: 'Upload file with values per user' }].map(opt => (
+            <label key={opt.v} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+              <input type="radio" name={`waMethod-${msg.id}`} value={opt.v} checked={msg.valueMethod === opt.v} onChange={() => update({ valueMethod: opt.v })} style={{ accentColor: '#22c55e' }} />
+              <span style={{ fontWeight: 500, color: '#334155' }}>{opt.l}</span>
+            </label>
+          ))}
+        </div>
+      </FieldRow>
+
+      {msg.valueMethod === 'manual' && (
+        <>
+          <FieldRow label="Recipient Phone Numbers" badge={<Badge type="mandatory" condition="Manual mode + no cohort" />}
+            helper="One number per line. Include country code (+91...).">
+            <textarea
+              className="ht-input" rows={3}
+              value={msg.recipients}
+              onChange={e => update({ recipients: e.target.value })}
+              placeholder="One phone number per line"
+              style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 12 }}
+            />
+          </FieldRow>
+
+          <FieldRow label="Test This Message" badge={<Badge type="optional" />}
+            helper="Sends the message above to one number right now, using the live values entered.">
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                className="ht-input"
+                value={testNumber}
+                onChange={e => setTestNumber(e.target.value)}
+                placeholder="Your phone number, e.g. 9876543210"
+                style={{ fontFamily: 'var(--font-mono)', maxWidth: 220 }}
+              />
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={sendTest}
+                disabled={testStatus === 'sending'}
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {testStatus === 'sending' ? 'Sending…' : '📲 Test the message'}
+              </button>
+              {testStatus === 'sent' && <span style={{ fontSize: 12, color: '#15803d', fontWeight: 600 }}>✓ {testMessage || 'Sent'}</span>}
+              {testStatus === 'error' && <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>{testMessage || "Couldn't send — check the number"}</span>}
+            </div>
+          </FieldRow>
+        </>
+      )}
+
+      {msg.valueMethod === 'upload' && (
+        <FieldRow label="Cohort / User File" badge={<Badge type="conditional" condition="Upload mode" />}>
+          <div style={{ border: '2px dashed #bbf7d0', borderRadius: 6, padding: '14px', background: '#f0fdf4', cursor: 'pointer' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 500, color: '#15803d', marginBottom: 4 }}>Upload CSV / XLSX</div>
+            <div style={{ fontSize: 10.5, color: '#4ade80' }}>
+              Required columns: phone_number, var1, var2{tpl && tpl.vars.length > 2 ? ', var3' : ''}
+            </div>
+          </div>
+        </FieldRow>
+      )}
+      {!objective && null}
+    </>
   )
 }
 
@@ -894,7 +1039,7 @@ function MetaTab({ data, onChange }: Props) {
                     <ChipMultiSelect options={STATES_ALL} selected={data.metaGeoInclude} onChange={v => onChange({ metaGeoInclude: v })} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600, marginBottom: 5 }}>Exclude</div>
+                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginBottom: 5 }}>⊘ Exclude</div>
                     <ChipMultiSelect options={STATES_ALL} selected={data.metaGeoExclude} onChange={v => onChange({ metaGeoExclude: v })} />
                   </div>
                 </div>

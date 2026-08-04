@@ -28,11 +28,14 @@ const HTAUTO_MODELS: Record<string, string[]> = {
 const COMPETITORS = ['Maruti Baleno', 'Hyundai Verna', 'Tata Nexon', 'Toyota Glanza']
 const DUPE_KEYS = ['Phone Number', 'Model', 'City', 'Dealer ID', 'Brand']
 
-function FieldRow({ label, badge, children }: { label: string; badge: React.ReactNode; children: React.ReactNode }) {
+function FieldRow({ label, badge, children, helper }: { label: string; badge: React.ReactNode; children: React.ReactNode; helper?: string }) {
   return (
     <div className="field-row">
       <div className="field-label">{label} {badge}</div>
-      <div>{children}</div>
+      <div>
+        {children}
+        {helper && <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 4 }}>{helper}</div>}
+      </div>
     </div>
   )
 }
@@ -71,7 +74,6 @@ export default function Step1Config({ data, onChange }: Props) {
   const bu = data.businessUnit
   const obj = data.objective
   const showAgencyCode = data.dealType === 'Agency'
-  const showDRR = bu === 'HTAuto' && (obj.startsWith('CPL') || obj.startsWith('CPQL'))
 
   const objLabel = () => {
     if (obj.startsWith('CPL')) return 'Price per Lead'
@@ -231,8 +233,8 @@ export default function Step1Config({ data, onChange }: Props) {
 
           <div style={{ fontSize: 11.5, color: '#334155', fontStyle: 'italic', marginBottom: 6 }}>and don't belong to</div>
           <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#dc2626' }}>
-              BQ Cohorts <a href="https://mixpanel.com" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontStyle: 'italic' }}>Create new</a>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#475569' }}>
+              ⊘ BQ Cohorts <a href="https://mixpanel.com" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontStyle: 'italic' }}>Create new</a>
             </div>
             <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px' }}>
               <ChipMultiSelect
@@ -246,7 +248,7 @@ export default function Step1Config({ data, onChange }: Props) {
             <span style={{ fontSize: 11, fontWeight: 700, border: '1px solid #cbd5e1', borderRadius: 5, padding: '2px 10px' }}>and</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'center' }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#dc2626' }}>Realtime Cohort</div>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#475569' }}>⊘ Realtime Cohort</div>
             <select className="ht-select" value={data.defaultRealtimeExclude} onChange={e => onChange({ defaultRealtimeExclude: e.target.value })}>
               <option value="">None</option>
               <option>Realtime: Cart Abandoners</option>
@@ -254,14 +256,6 @@ export default function Step1Config({ data, onChange }: Props) {
             </select>
           </div>
         </div>
-        {showDRR && (
-          <FieldRow label="Daily Run Rate (DRR) Cap" badge={<Badge type="conditional" condition="Category = HTAuto + Obj = CPL/CPQL" />}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
-              <input className="ht-input" value={data.drrCap} onChange={e => onChange({ drrCap: e.target.value })} placeholder="180" style={{ border: 'none', borderRadius: 0, fontFamily: 'var(--font-mono)' }} />
-              <span style={{ padding: '6px 10px', background: '#f8fafc', borderLeft: '1px solid #e2e8f0', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>leads/day</span>
-            </div>
-          </FieldRow>
-        )}
       </SectionCard>
 
       {/* 4 — Tracking */}
