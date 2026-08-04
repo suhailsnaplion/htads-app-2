@@ -1,4 +1,4 @@
-export type Screen = 'login' | 'dashboard' | 'wizard' | 'advanced' | 'admin' | 'help' | 'intelligence'
+export type Screen = 'login' | 'dashboard' | 'wizard' | 'advanced' | 'admin' | 'help' | 'intelligence' | 'insight'
 
 export type Channel = 'Echo' | 'DSP' | 'WhatsApp' | 'Voice AI' | 'Meta'
 
@@ -137,6 +137,7 @@ export interface CampaignFormData {
   // Step 3 — DSP
   dspAudienceType: string
   dspCohort: string
+  dspCreateLookalike: boolean
   dspInventories: DspInventory[]
   dspOptimizationGoal: string
   dspAttributionMethod: string
@@ -169,6 +170,7 @@ export interface CampaignFormData {
   // Step 3 — Meta
   metaChannelRole: string
   metaCohort: string
+  metaCreateLookalike: boolean
   metaGeoOverride: boolean
   metaGeoInclude: string[]
   metaGeoExclude: string[]
@@ -279,6 +281,7 @@ export const defaultFormData: CampaignFormData = {
   echoCountry: 'All',
   dspAudienceType: 'Retargeting',
   dspCohort: '', // '' = inherit campaign default
+  dspCreateLookalike: false,
   dspInventories: [
     { id: 'dsp-inv-1', mediaType: 'Display', biddingType: 'CPM', bidCap: '85', creativeFileName: '' },
   ],
@@ -312,6 +315,7 @@ export const defaultFormData: CampaignFormData = {
   voiceLeadDispositions: ['Interested', 'Call Back', 'Not Interested', 'Wrong Number'],
   metaChannelRole: 'Primary Acquisition',
   metaCohort: '', // '' = inherit campaign default
+  metaCreateLookalike: false,
   metaGeoOverride: false,
   metaGeoInclude: [],
   metaGeoExclude: [],

@@ -7,6 +7,7 @@ import AdvancedSettings from './screens/AdvancedSettings'
 import UserAdmin from './screens/UserAdmin'
 import Help from './screens/Help'
 import IntelligencePanel from './screens/IntelligencePanel'
+import CampaignInsight from './screens/CampaignInsight'
 import type { Screen } from './types'
 
 const PAGE_TITLES: Record<Screen, { title: string; subtitle?: string }> = {
@@ -17,6 +18,7 @@ const PAGE_TITLES: Record<Screen, { title: string; subtitle?: string }> = {
   admin: { title: 'User Admin', subtitle: 'Roles and permissions' },
   help: { title: 'Help & Documentation' },
   intelligence: { title: 'Campaign Intelligence', subtitle: 'Insights & recommended actions' },
+  insight: { title: 'Campaign Insight', subtitle: 'Performance, channel by channel' },
 }
 
 // Login has been removed for this deployment — the app opens straight to
@@ -37,6 +39,11 @@ export default function App() {
     setScreen('intelligence')
   }
 
+  const openInsight = (campaignId: string) => {
+    setSelectedCampaignId(campaignId)
+    setScreen('insight')
+  }
+
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <Sidebar currentScreen={screen} onNavigate={setScreen} />
@@ -44,12 +51,13 @@ export default function App() {
         <TopBar {...PAGE_TITLES[screen]} />
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {screen === 'dashboard' && <Dashboard onNavigate={setScreen} onOpenIntelligence={openIntelligence} key={refreshKey} />}
+          {screen === 'dashboard' && <Dashboard onNavigate={setScreen} onOpenIntelligence={openIntelligence} onOpenInsight={openInsight} key={refreshKey} />}
           {screen === 'wizard' && <WizardContainer onLaunched={handleLaunched} />}
           {screen === 'advanced' && <AdvancedSettings />}
           {screen === 'admin' && <UserAdmin />}
           {screen === 'help' && <Help />}
           {screen === 'intelligence' && <IntelligencePanel campaignId={selectedCampaignId} onBack={() => setScreen('dashboard')} />}
+          {screen === 'insight' && <CampaignInsight campaignId={selectedCampaignId} onBack={() => setScreen('dashboard')} />}
         </div>
       </div>
     </div>

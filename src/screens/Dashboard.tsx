@@ -34,11 +34,11 @@ interface Stats {
   channelThroughput: Record<string, number>
 }
 
-interface Props { onNavigate: (s: Screen) => void; onOpenIntelligence: (campaignId: string) => void }
+interface Props { onNavigate: (s: Screen) => void; onOpenIntelligence: (campaignId: string) => void; onOpenInsight: (campaignId: string) => void }
 
 const fmtRupee = (n: number) => `₹${Number(n).toLocaleString('en-IN')}`
 
-export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
+export default function Dashboard({ onNavigate, onOpenIntelligence, onOpenInsight }: Props) {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,7 +78,7 @@ export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
           <>
             <StatCard label="ACTIVE CAMPAIGNS" icon="◉" value={String(stats.activeCampaigns)} note={stats.activeCampaignsDelta} noteColor="#16a34a" />
             <StatCard label="TOTAL SPEND, MTD" icon="₹" value={fmtRupee(stats.totalSpendMtd)} mono note={stats.totalSpendMtdNote} noteColor="#64748b" />
-            <StatCard label="LEADS TODAY" icon="⟶" value={String(stats.leadsToday)} note={stats.leadsTodayDelta} noteColor="#16a34a" />
+            <StatCard label="CONVERSIONS TODAY" icon="⟶" value={String(stats.leadsToday)} note={stats.leadsTodayDelta} noteColor="#16a34a" />
             <StatCard label="CHANNELS LIVE" icon="✦" value={`${stats.channelsLive} / ${stats.channelsLiveTotal}`} note={stats.channelsLiveNote} noteColor="#16a34a" />
           </>
         )}
@@ -96,7 +96,7 @@ export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
             style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}
             title="% of users reached who converted — leads, transactions, or views, depending on what each campaign on that channel optimizes for"
           >
-            Channel Throughput
+            Channel-wise ROI
           </span>
           {Object.entries(stats.channelThroughput).map(([name, pct]) => (
             <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -210,8 +210,15 @@ export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
                     >
                       🧠
                     </button>
-                    <button className="btn-secondary" style={{ padding: '3px 9px', fontSize: 11 }}>View</button>
-                    <button className="btn-secondary" style={{ padding: '3px 9px', fontSize: 11 }}>Edit</button>
+                    <button
+                      className="btn-secondary"
+                      title="Insight — campaign performance, channel by channel"
+                      style={{ padding: '3px 8px', fontSize: 12, color: '#0369a1', borderColor: '#bae6fd', background: '#f0f9ff' }}
+                      onClick={() => onOpenInsight(c.id)}
+                    >
+                      📊
+                    </button>
+                    <button className="btn-secondary" title="Edit campaign" style={{ padding: '3px 8px', fontSize: 12 }}>✎</button>
                   </div>
                 </td>
               </tr>

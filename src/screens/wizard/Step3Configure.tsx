@@ -470,6 +470,13 @@ function DSPTab({ data, onChange }: Props) {
         </FieldRow>
         <CohortField data={data} value={data.dspCohort} onChange={v => onChange({ dspCohort: v })}
           options={['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers', 'Realtime: Cart Abandoners']} />
+        <FieldRow label="Create Lookalike Audience" badge={<Badge type="optional" />}
+          helper="Generates a new audience of similar users based on the cohort selected above.">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <input type="checkbox" checked={data.dspCreateLookalike} onChange={e => onChange({ dspCreateLookalike: e.target.checked })} style={{ width: 16, height: 16, accentColor: '#0ea5e9' }} />
+            <span style={{ fontSize: 13, color: '#334155' }}>Build a lookalike audience from this cohort</span>
+          </label>
+        </FieldRow>
 
         <div style={{ height: 1, background: '#e2e8f0', margin: '18px 0' }} />
 
@@ -1025,6 +1032,13 @@ function MetaTab({ data, onChange }: Props) {
         <SubSection title="Audience">
           <CohortField data={data} value={data.metaCohort} onChange={v => onChange({ metaCohort: v })}
             options={['HTAuto_HighIntent_Apr26', 'Lookalike: Recent Purchasers']} />
+          <FieldRow label="Create Lookalike Audience" badge={<Badge type="optional" />}
+            helper="Generates a new Meta audience of similar users based on the cohort selected above.">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input type="checkbox" checked={data.metaCreateLookalike} onChange={e => onChange({ metaCreateLookalike: e.target.checked })} style={{ width: 16, height: 16, accentColor: '#8b5cf6' }} />
+              <span style={{ fontSize: 13, color: '#334155' }}>Build a lookalike audience from this cohort</span>
+            </label>
+          </FieldRow>
           <FieldRow label="Locations" badge={<Badge type="mandatory" />}
             helper={data.metaGeoOverride ? 'Overriding the campaign geography for this channel only.' : `Inheriting campaign geography (set in Step 1): ${data.state}, ${data.city}, ${data.zone} zone.`}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: data.metaGeoOverride ? 8 : 0 }}>
