@@ -9,7 +9,11 @@ interface Props {
 }
 
 const BUS = ['HTAuto', 'HTTech', 'HTShopNow', 'Affiliates', 'Education', 'HT', 'LM', 'LH']
-const OBJECTIVES = ['CPL – Cost per Lead', 'CPQL – Cost per Qualified Lead', 'CPS – Cost per Sale', 'CPA – Cost per Action', 'CPM – Cost per 1000 Impressions', 'CPC – Cost per Click']
+const OBJECTIVES = [
+  'CPC – Cost per Click', 'CPI – Cost per Install', 'CPL – Cost per Lead', 'CPQL – Cost per Qualified Lead', 'CPS – Cost per Sale',
+  'CPA – App Download', 'CPA – Transaction', 'CPA – Sign Up', 'CPA – Form Submit', 'CPA – Subscription',
+  'User engagement', 'New feature promotion', 'Paid Advertisement', 'Voucher Advertisement', 'Personalization', 'Personal Finance', 'Test', 'Fallback/Default',
+]
 const STATES: Record<string, string[]> = {
   Maharashtra: ['Mumbai', 'Pune', 'Nagpur'],
   'Delhi NCR': ['New Delhi', 'Gurugram', 'Noida'],
@@ -67,7 +71,6 @@ export default function Step1Config({ data, onChange }: Props) {
   const bu = data.businessUnit
   const obj = data.objective
   const showAgencyCode = data.dealType === 'Agency'
-  const showActionType = obj === 'CPA – Cost per Action'
   const showDRR = bu === 'HTAuto' && (obj.startsWith('CPL') || obj.startsWith('CPQL'))
 
   const objLabel = () => {
@@ -75,7 +78,7 @@ export default function Step1Config({ data, onChange }: Props) {
     if (obj.startsWith('CPQL')) return 'Price per Qualified Lead'
     if (obj.startsWith('CPS')) return 'Price per Sale'
     if (obj.startsWith('CPA')) return 'Price per Action'
-    if (obj.startsWith('CPM')) return 'Price per 1,000 Impressions'
+    if (obj.startsWith('CPI')) return 'Price per Install'
     if (obj.startsWith('CPC')) return 'Price per Click'
     return 'Unit Price'
   }
@@ -85,7 +88,7 @@ export default function Step1Config({ data, onChange }: Props) {
     if (obj.startsWith('CPQL')) return 'Target qualified leads'
     if (obj.startsWith('CPS')) return 'Target sales'
     if (obj.startsWith('CPA')) return 'Target actions'
-    if (obj.startsWith('CPM')) return 'Target impressions'
+    if (obj.startsWith('CPI')) return 'Target installs'
     if (obj.startsWith('CPC')) return 'Target clicks'
     return 'Target volume'
   }
@@ -99,9 +102,9 @@ export default function Step1Config({ data, onChange }: Props) {
         <FieldRow label="Campaign Name" badge={<Badge type="mandatory" />}>
           <input className="ht-input" value={data.campaignName} onChange={e => onChange({ campaignName: e.target.value })} placeholder="e.g. Honda City — Q3 Lead Gen" />
         </FieldRow>
-        <FieldRow label="Business Unit" badge={<Badge type="mandatory" condition="Drives conditional branch below" />}>
+        <FieldRow label="Category" badge={<Badge type="mandatory" condition="Drives conditional branch below" />}>
           <select className="ht-select" value={data.businessUnit} onChange={e => onChange({ businessUnit: e.target.value })}>
-            <option value="">Select BU</option>
+            <option value="">Select Category</option>
             {BUS.map(b => <option key={b}>{b}</option>)}
           </select>
         </FieldRow>
@@ -126,20 +129,6 @@ export default function Step1Config({ data, onChange }: Props) {
             {OBJECTIVES.map(o => <option key={o}>{o}</option>)}
           </select>
         </FieldRow>
-        <FieldRow label="Campaign Objective" badge={<Badge type="mandatory" />}
-          helper="Common across all channels — set once here, not per channel.">
-          <select className="ht-select" value={data.campaignObjective} onChange={e => onChange({ campaignObjective: e.target.value })}>
-            {['User engagement', 'New feature promotion', 'Paid Advertisement', 'App download', 'Voucher Advertisement', 'Personalization', 'Personal Finance', 'Test', 'Fallback/Default'].map(o => <option key={o}>{o}</option>)}
-          </select>
-        </FieldRow>
-        {showActionType && (
-          <FieldRow label="Action Type" badge={<Badge type="conditional" condition="Objective = CPA" />}>
-            <select className="ht-select" value={data.actionType} onChange={e => onChange({ actionType: e.target.value })}>
-              <option value="">Select action type</option>
-              {['App Download', 'Transaction', 'Sign-up', 'Form Submit', 'Subscription'].map(a => <option key={a}>{a}</option>)}
-            </select>
-          </FieldRow>
-        )}
         <FieldRow label="Goal Layer" badge={<Badge type="mandatory" />}>
           <select className="ht-select" value={data.goalLayer} onChange={e => onChange({ goalLayer: e.target.value })}>
             <option>Acquisition</option>
@@ -159,6 +148,9 @@ export default function Step1Config({ data, onChange }: Props) {
         </FieldRow>
         <FieldRow label={volLabel()} badge={<Badge type="mandatory" />}>
           <input className="ht-input" value={data.targetVolume} onChange={e => onChange({ targetVolume: e.target.value })} placeholder="5,500" style={{ fontFamily: 'var(--font-mono)' }} />
+        </FieldRow>
+        <FieldRow label="Daily Target" badge={<Badge type="optional" />} helper="Optional day-level target, alongside the total above.">
+          <input className="ht-input" value={data.dailyTarget} onChange={e => onChange({ dailyTarget: e.target.value })} placeholder="e.g. 180" style={{ fontFamily: 'var(--font-mono)' }} />
         </FieldRow>
         <FieldRow label="Total Campaign Budget" badge={<Badge type="mandatory" />}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
@@ -208,19 +200,62 @@ export default function Step1Config({ data, onChange }: Props) {
         <FieldRow label="Pincode" badge={<Badge type="optional" />}>
           <input className="ht-input" value={data.pincode} onChange={e => onChange({ pincode: e.target.value })} placeholder="e.g. 400001" style={{ fontFamily: 'var(--font-mono)' }} />
         </FieldRow>
-        <FieldRow label="Default Cohort / Audience" badge={<Badge type="optional" />}
-          helper="Applied to every channel in Step 3 unless a channel explicitly overrides it.">
-          <select className="ht-select" value={data.defaultCohortAudience} onChange={e => onChange({ defaultCohortAudience: e.target.value })}>
-            <option value="">None — each channel targets its own default audience</option>
-            <option>HTAuto_HighIntent_Apr26</option>
-            <option>Realtime: Cart Abandoners</option>
-            <option>Realtime: Form Abandoners</option>
-            <option>Education_Web_Leads_Q2</option>
-            <option>Lookalike: Recent Purchasers</option>
-          </select>
-        </FieldRow>
+        <div className="field-row" style={{ display: 'block' }}>
+          <div className="field-label" style={{ marginBottom: 10 }}>Targeting <Badge type="optional" /></div>
+          <div style={{ fontSize: 10.5, color: '#64748b', marginBottom: 10 }}>Applied to every channel in Step 3 unless a channel explicitly overrides it.</div>
+
+          <div style={{ fontSize: 11.5, color: '#334155', marginBottom: 6 }}>and belong to</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#15803d' }}>
+              BQ Cohorts <a href="https://mixpanel.com" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontStyle: 'italic' }}>Create new cohort</a>
+            </div>
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px' }}>
+              <ChipMultiSelect
+                options={['All users', 'HTAuto_HighIntent_Apr26', 'Education_Web_Leads_Q2', 'Lookalike: Recent Purchasers']}
+                selected={data.defaultBqInclude}
+                onChange={v => onChange({ defaultBqInclude: v })}
+              />
+            </div>
+          </div>
+          <div style={{ textAlign: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, border: '1px solid #cbd5e1', borderRadius: 5, padding: '2px 10px' }}>and</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#15803d' }}>Realtime Cohort</div>
+            <select className="ht-select" value={data.defaultRealtimeInclude} onChange={e => onChange({ defaultRealtimeInclude: e.target.value })}>
+              <option value="">None</option>
+              <option>Realtime: Cart Abandoners</option>
+              <option>Realtime: Form Abandoners</option>
+            </select>
+          </div>
+
+          <div style={{ fontSize: 11.5, color: '#334155', fontStyle: 'italic', marginBottom: 6 }}>and don't belong to</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'start', marginBottom: 10 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#dc2626' }}>
+              BQ Cohorts <a href="https://mixpanel.com" target="_blank" rel="noreferrer" style={{ fontSize: 11, fontStyle: 'italic' }}>Create new</a>
+            </div>
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px' }}>
+              <ChipMultiSelect
+                options={['All users', 'HTAuto_HighIntent_Apr26', 'Education_Web_Leads_Q2', 'Lookalike: Recent Purchasers']}
+                selected={data.defaultBqExclude}
+                onChange={v => onChange({ defaultBqExclude: v })}
+              />
+            </div>
+          </div>
+          <div style={{ textAlign: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, border: '1px solid #cbd5e1', borderRadius: 5, padding: '2px 10px' }}>and</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10, alignItems: 'center' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#dc2626' }}>Realtime Cohort</div>
+            <select className="ht-select" value={data.defaultRealtimeExclude} onChange={e => onChange({ defaultRealtimeExclude: e.target.value })}>
+              <option value="">None</option>
+              <option>Realtime: Cart Abandoners</option>
+              <option>Realtime: Form Abandoners</option>
+            </select>
+          </div>
+        </div>
         {showDRR && (
-          <FieldRow label="Daily Run Rate (DRR) Cap" badge={<Badge type="conditional" condition="BU = HTAuto + Obj = CPL/CPQL" />}>
+          <FieldRow label="Daily Run Rate (DRR) Cap" badge={<Badge type="conditional" condition="Category = HTAuto + Obj = CPL/CPQL" />}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
               <input className="ht-input" value={data.drrCap} onChange={e => onChange({ drrCap: e.target.value })} placeholder="180" style={{ border: 'none', borderRadius: 0, fontFamily: 'var(--font-mono)' }} />
               <span style={{ padding: '6px 10px', background: '#f8fafc', borderLeft: '1px solid #e2e8f0', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>leads/day</span>
@@ -259,7 +294,7 @@ export default function Step1Config({ data, onChange }: Props) {
           }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0ea5e9' }} />
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: '#1e40af' }}>5 · HTAuto — Conditional Fields</span>
-            <span style={{ fontSize: 10, color: '#1e40af', opacity: 0.7, marginLeft: 4 }}>Visible because Business Unit = HTAuto</span>
+            <span style={{ fontSize: 10, color: '#1e40af', opacity: 0.7, marginLeft: 4 }}>Visible because Category = HTAuto</span>
           </div>
           <div style={{ padding: '4px 16px 12px' }}>
             <FieldRow label="Client / Advertiser" badge={<Badge type="mandatory" />}>

@@ -66,12 +66,24 @@ function ChipMultiSelect({ options, selected, onChange }: { options: string[]; s
   )
 }
 
+function summarizeDefaultTargeting(data: CampaignFormData): string {
+  const parts: string[] = []
+  if (data.defaultBqInclude.length) parts.push(data.defaultBqInclude.join(' + '))
+  if (data.defaultRealtimeInclude) parts.push(data.defaultRealtimeInclude)
+  let summary = parts.join(' AND ')
+  const excludeParts: string[] = []
+  if (data.defaultBqExclude.length) excludeParts.push(data.defaultBqExclude.join(' + '))
+  if (data.defaultRealtimeExclude) excludeParts.push(data.defaultRealtimeExclude)
+  if (excludeParts.length) summary += ` (excluding ${excludeParts.join(' AND ')})`
+  return summary
+}
+
 function CohortField({ data, value, onChange, options }: { data: CampaignFormData; value: string; onChange: (v: string) => void; options: string[] }) {
-  const inherited = data.defaultCohortAudience
+  const inherited = summarizeDefaultTargeting(data)
   return (
     <FieldRow label="Cohort / Audience" badge={<Badge type="optional" />}
       helper={value === ''
-        ? (inherited ? `Inheriting campaign default (set in Step 1): ${inherited}` : 'No campaign default is set in Step 1 — pick one below to target this channel specifically.')
+        ? (inherited ? `Inheriting campaign default targeting (set in Step 1): ${inherited}` : 'No campaign default is set in Step 1 — pick one below to target this channel specifically.')
         : 'Overriding the campaign default for this channel only.'}>
       <select className="ht-select" value={value} onChange={e => onChange(e.target.value)}>
         <option value="">{inherited ? `Use campaign default (${inherited})` : 'None — no audience restriction'}</option>
@@ -682,7 +694,7 @@ function WhatsAppTab({ data, onChange }: Props) {
           <input className="ht-input" value={data.waDailyLimit} onChange={e => onChange({ waDailyLimit: e.target.value })} placeholder="5000" style={{ fontFamily: 'var(--font-mono)' }} />
         </FieldRow>
 
-        {data.objective === 'CPA – Cost per Action' && (
+        {data.objective.startsWith('CPA') && (
           <FieldRow label="Inbound Postback / Webhook" badge={<Badge type="conditional" condition="Objective = CPA + WhatsApp is acquisition point" />}
             helper="Receives conversion signals for attribution.">
             <input className="ht-input" placeholder="https://webhook.ht-ads.com/inbound/..." />

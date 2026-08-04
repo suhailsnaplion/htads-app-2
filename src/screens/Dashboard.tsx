@@ -143,7 +143,7 @@ export default function Dashboard({ onNavigate, onOpenIntelligence }: Props) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              {['Campaign Name', 'ID', 'Business Unit', 'Channels', 'Status', 'Budget', 'Spend MTD', 'Leads', ''].map(h => (
+              {['Campaign Name', 'ID', 'Category', 'Channels', 'Status', 'Budget', 'Spend MTD', 'Leads', ''].map(h => (
                 <th key={h} style={{
                   padding: '9px 14px', textAlign: 'left',
                   fontSize: 10.5, fontWeight: 700, color: '#64748b',

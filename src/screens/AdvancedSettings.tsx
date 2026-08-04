@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 
-const TABS = ['Business Unit Registry', 'Placements Registry', 'Templates Registry', 'User Segments (Cohort) Registry']
+const TABS = ['Category Registry', 'Placements Registry', 'Templates Registry', 'User Segments (Cohort) Registry']
 
 const BU_FALLBACK = [
   { name: 'HTAuto', code: 'HTAU', active: true, cms: true, drr: true, adv: true, geo: 'National', owner: 'Ravi Sharma' },
@@ -125,7 +125,7 @@ export default function AdvancedSettings() {
       {tab === 0 && (
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: '#0f2044' }}>Business Unit Registry</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: '#0f2044' }}>Category Registry</span>
             <button className="btn-primary" style={{ fontSize: 12 }}>+ Add BU</button>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>

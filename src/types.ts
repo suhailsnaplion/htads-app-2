@@ -11,12 +11,11 @@ export interface CampaignFormData {
 
   // Objective
   objective: string
-  campaignObjective: string
-  actionType: string
   goalLayer: string
   attributionMethod: string
   unitPrice: string
   targetVolume: string
+  dailyTarget: string
   totalBudget: string
   goCutomFork: string
   autoBudgetAllocation: boolean
@@ -28,7 +27,10 @@ export interface CampaignFormData {
   city: string
   zone: string
   pincode: string
-  defaultCohortAudience: string
+  defaultBqInclude: string[]
+  defaultRealtimeInclude: string
+  defaultBqExclude: string[]
+  defaultRealtimeExclude: string
   drrCap: string
 
   // Tracking
@@ -178,12 +180,11 @@ export const defaultFormData: CampaignFormData = {
   dealType: 'Direct',
   agencyCode: '',
   objective: 'CPL – Cost per Lead',
-  campaignObjective: 'Paid Advertisement',
-  actionType: '',
   goalLayer: 'Acquisition',
   attributionMethod: 'Last Click',
   unitPrice: '145',
   targetVolume: '5500',
+  dailyTarget: '',
   totalBudget: '800000',
   goCutomFork: '',
   autoBudgetAllocation: false,
@@ -193,7 +194,10 @@ export const defaultFormData: CampaignFormData = {
   city: 'Mumbai',
   zone: 'West',
   pincode: '400001',
-  defaultCohortAudience: 'HTAuto_HighIntent_Apr26',
+  defaultBqInclude: ['All users'],
+  defaultRealtimeInclude: '',
+  defaultBqExclude: [],
+  defaultRealtimeExclude: '',
   drrCap: '180',
   utmSource: 'ht-ads',
   utmCampaign: 'honda-city-q3',

@@ -208,7 +208,7 @@ export default function Step4Review({ data, onChange, onLaunch, onEdit }: Props)
       {/* Campaign config */}
       <ReviewSection title="1 · Identity &amp; Ownership" step={1} onEdit={onEdit}>
         <KV label="Campaign Name" value={data.campaignName} />
-        <KV label="Business Unit" value={data.businessUnit} />
+        <KV label="Category" value={data.businessUnit} />
         <KV label="Deal Type" value={data.dealType} />
         {data.dealType === 'Agency' && <KV label="Agency Code" value={data.agencyCode} mono />}
       </ReviewSection>

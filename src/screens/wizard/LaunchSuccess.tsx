@@ -42,7 +42,7 @@ export default function LaunchSuccess({ data, campaignId, onGoToDashboard, onCre
         </div>
         <div style={{ width: 1, background: '#e2e8f0' }} />
         <div>
-          <div style={{ fontSize: 10.5, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 4 }}>Business Unit</div>
+          <div style={{ fontSize: 10.5, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 4 }}>Category</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: '#0f2044' }}>{data.businessUnit}</div>
         </div>
         <div style={{ width: 1, background: '#e2e8f0' }} />
